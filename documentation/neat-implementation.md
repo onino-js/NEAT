@@ -113,7 +113,14 @@ Method: Track a structural mutation of a Genome
 8. Reproduce process for each gene of the genome.
 ```
 
+This innovation number is also a central piece to perform speciation over the population as will see in next section.
+
 ### Speciation
+
+A species is a collection of Genomes that are compatible. Two Genomes can produce a child through crossover only if they are compatible.
+Two Genomes compete over each other in the evolution process only if they are compatible.
+In other terms, if they are of the same species.
+So what exactly being compatible means ?
 
 > The idea is to divide the population into species such
 > The number of excess and disjoint genes between a pair of genomes is a natural
@@ -125,10 +132,12 @@ Method: Track a structural mutation of a Genome
 
 ![Distance in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/distance-equation.png?raw=true, "Distance in neat algorithm")
 
-> The coefficients c 1 , c 2 , and c 3 allow us to adjust the importance of the three factors, and
-> the factor N , the number of genes in the larger genome, normalizes for genome size (N
-> can be set to 1 if both genomes are small, i.e., consist of fewer than 20 genes).
-> The distance measure δ allows us to speciate using a compatibility threshold δ t .
+_Equation 1: The coefficients c 1 , c 2 , and c 3 allow us to adjust the importance of the three factors, and
+the factor N , the number of genes in the larger genome, normalizes for genome size (N
+can be set to 1 if both genomes are small, i.e., consist of fewer than 20 genes).
+The distance measure δ allows us to speciate using a compatibility threshold δ t._
+
+Here the authors provide a functional definition of compatibility between two Genomes with an easy implementation.
 
 > An ordered list of species is maintained. In each generation, genomes are sequentially
 > placed into species. Each existing species is represented by a random genome inside
@@ -136,6 +145,18 @@ Method: Track a structural mutation of a Genome
 > placed in the first species in which g is compatible with the representative genome of
 > that species. This way, species do not overlap. 1 If g is not compatible with any existing
 > species, a new species is created with g as its representative.
+
+As a specificity of the NEAT algorithm, we should perforom a speciation of the population before going through the steps of mutations and crossovers. Note that the Neat object should be initialized with one species containing all the population so that a first mutation step can be performed. For a given Genome to be speciated, the steps are:
+
+```
+Method: Speciate a new Genome within the population
+
+1. For Each species of the population, pick a random representant and build a representant array
+2. Compute the distance between the Genome and the first representant using equation 1
+3. If the distance is below a threshold defined in configuration, put the Genome into the same Species than the representant.
+4. If not, repeat Step 2 with next representant of the representant array.
+5. At the end, if no existing species has been assigned to the Genome, create a new Species for that Genome.
+```
 
 ### Fitness evaluation
 
