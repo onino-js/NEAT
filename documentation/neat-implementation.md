@@ -60,7 +60,7 @@ Use of indexed array insure the linear representation.
 > connection gene is expressed (an enable bit), and an innovation number, which allows
 > finding corresponding genes.
 
-An object of type Connexion gene has at least four properties:
+An object of type ConnexionGene has at least four properties:
 
 - One identificator of a node gene for its input (can be an id or the node gene object itself)
 - One identificator of a node gene for its input (can be an id or the node gene object itself)
@@ -89,7 +89,7 @@ Tracking topological changes will provide us a simple way to perform speciations
 > and assigned to that gene. The innovation numbers thus represent a chronology of the
 > appearance of every gene in the system.
 
-The innovation appears at the Gene objects (ConnexionGene and NodeGene).
+The innovation appears in the Gene objects (ConnexionGene and NodeGene), it is a positive integer.
 
 > A possible problem is that the same structural innovation will receive different in-
 > novation numbers in the same generation if it occurs by chance more than once. How-
@@ -100,6 +100,7 @@ The innovation appears at the Gene objects (ConnexionGene and NodeGene).
 
 In the Neat process, those instructions take place during the creation of new population of Genomes. Eventually, some structural mutations will occur leading to new Genomes. The mutation process should be triggerd in the scope of a tracking process describe below:
 
+```
 Method: Track a structural mutation of a Genome
 
 1. Get the max innovation number from all genes of all Genomes of the population.
@@ -110,6 +111,7 @@ Method: Track a structural mutation of a Genome
 6. Assign this max innovation number to the new Gene innovation property.
 7. Store the new Gene into an array to perform step 3 with next genes.
 8. Reproduce process for each gene of the genome.
+```
 
 ### Speciation
 
