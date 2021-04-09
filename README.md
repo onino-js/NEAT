@@ -1,9 +1,9 @@
-# NEAT
+# Description
 
 NeuroEvolution of Augmenting Topologies (NEAT) is a genetic algorithm (GA) for the generation of evolving artificial neural networks.
 This library implements a typescript implementation of the neat algorithm provided with a vislualiser tool to see how the network is evolving.
 
-More informations about NEAT are available in ![the original paper](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf).
+More informations about NEAT are available in [the original paper](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf).
 
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
