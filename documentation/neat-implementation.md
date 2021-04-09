@@ -152,9 +152,13 @@ As a specificity of the NEAT algorithm, we should perforom a speciation of the p
 Method: Speciate a new Genome within the population
 
 1. For Each species of the population, pick a random representant and build a representant array
+
 2. Compute the distance between the Genome and the first representant using equation 1
-3. If the distance is below a threshold defined in configuration, put the Genome into the same Species than the representant.
+
+3. If the distance is below a threshold (defined in configuration), put the Genome into the same Species than the representant.
+
 4. If not, repeat Step 2 with next representant of the representant array.
+
 5. At the end, if no existing species has been assigned to the Genome, create a new Species for that Genome.
 ```
 
