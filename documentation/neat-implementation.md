@@ -5,11 +5,11 @@ All quotes in this document comes from [Evolving Neural Networks through Augment
 
 ### Introduction
 
-For a detailed explanation of NEAT terms, please read the [NEAT glossary](https://github.com/onino-js/NEAT/tree/main/documentation/net-glossary.md).
+For a detailed explanation of NEAT terms, please read the [NEAT glossary](https://github.com/onino-js/NEAT/blob/main/documentation/net-glossary.md).
 
-A NEAT algorithm is a variation of more common Genetic algorithm which optimize neural networks. To understand the NEAT implementation one should make shure of understanding [the basic implementation of a genetic algorithm](https://github.com/onino-js/NEAT/tree/main/documentation/genetic-algorithm.md) first.
+A NEAT algorithm is a variation of more common Genetic algorithm which optimize neural networks. To understand the NEAT implementation one should make shure of understanding [the basic implementation of a genetic algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md) first.
 
-Moreover, to understand the motivations behind the NEAT algorithm and the choices made for its implementation, I suggest you to read the NEAT presentation before going forward.
+Moreover, to understand the motivations behind the NEAT algorithm and the choices made for its implementation, I suggest you to read the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md) before going forward.
 
 The algorithm will be composed of objects and arrays of objects, and functions that manipulate those objects. The aim is to define all the type of objects,
 
@@ -43,7 +43,7 @@ Also notice that I choosed the following names in the source code that differs f
 
 ### Encoding the genome
 
-The Encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/tree/main/documentation/net-presentation.md). Here are the authors prescriptions:
+The Encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md). Here are the authors prescriptions:
 
 > Genomes are linear representations of network connectivity (Figure 2). Each genome includes a list of connection
 > genes, each of which refers to two node genes being connected.
