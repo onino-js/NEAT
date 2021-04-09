@@ -85,6 +85,24 @@ the phenotype._
 > leading into the new node receives a weight of 1, and the new connection leading out
 > receives the same weight as the old connection.
 
+#### Connexion mutation
+
+> The top number in each genome is the innovation number of
+> that gene. The innovation numbers are historical markers that identify the original his-
+> torical ancestor of each gene. New genes are assigned new increasingly higher num-
+> bers. In adding a connection, a single new connection gene is added to the end of the
+> genome and given the next available innovation number.
+
+![Connexion mutaion in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/structural-mutation-1.png?raw=true, "Connexion mutaion in neat algorithm")
+
+#### Node mutation
+
+> In adding a new node, the connection gene being split is disabled, and two new connection genes are added to the
+> end the genome. The new node is between the two new connections. A new node gene
+> (not depicted) representing this new node is added to the genome as well.
+
+![Node mutaion in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/structural-mutation-2.png?raw=true, "Node mutaion in neat algorithm")
+
 ### Crossover
 
 ![Crossover in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/crossover.png?raw=true, "Crossover in neat algorithm")
