@@ -1,7 +1,7 @@
-# NEAT.js
+# NEAT
 
 NeuroEvolution of Augmenting Topologies (NEAT) is a genetic algorithm (GA) for the generation of evolving artificial neural networks.
-This library implements an implementation of the neat algorithm writted in Typescript and provided with a vislualiser to see the network evolving.
+This library implements a typescript implementation of the neat algorithm provided with a vislualiser tool to see how the network is evolving.
 
 More informations about NEAT are available in ![the original paper](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf).
 
