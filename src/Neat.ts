@@ -51,7 +51,11 @@ export class Genotype {
 export class Phenotype {
   public genotype: Genotype;
   public fitness: number;
+  public outputs: number[] = [];
   constructor() {}
+  public feedForward(inputs: number[]): number[] {
+    return this.outputs;
+  }
 }
 
 interface ImutationRates {

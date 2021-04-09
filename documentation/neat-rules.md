@@ -1,5 +1,8 @@
 # NEAT rules
 
+The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of computing steps over objects). The description is language agnistic so that any developper would easily reproduce a NEAT in any programming language.
+All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf).
+
 ### Encoding the genome
 
 > NEAT’s genetic encoding scheme is designed to allow corresponding genes to be easily
@@ -22,6 +25,10 @@ the phenotype._
 # NEAT rules
 
 ### Trackling topological changes
+
+> Whenever a new gene appears (through structural mutation), a global innovation number is incremented
+> and assigned to that gene. The innovation numbers thus represent a chronology of the
+> appearance of every gene in the system.
 
 ### Speciation
 
@@ -117,5 +124,3 @@ genes (those that do not match in the end) are inherited from the more fit paren
 this case, equal fitnesses are assumed, so the disjoint and excess genes are also inherited
 randomly. The disabled genes may become enabled again in future generations: there’s
 a preset chance that an inherited gene is disabled if it is disabled in either parent._
-
-src: [Evolving Neural Networks through Augmenting Topologies](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf)
