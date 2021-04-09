@@ -1,6 +1,6 @@
 # NEAT implementation
 
-The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of computing steps over objects). The description is language agnistic so that any developper would easily reproduce a NEAT in any programming language.
+The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of computing steps over objects). The description is language agnostic so that a developper would easily reproduce a NEAT in any programming language.
 All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf).
 
 ### Introduction
@@ -11,20 +11,39 @@ A Genome is a representation of a phenotype, which is an individual over a popul
 
 To build the algorithm, it is important to make a distinction between Genome objects and Phenotype (or Individual, or Network). A NEAT algorithm manipulates Genomes and genes to produce new populations. The correspondings phenotypes are tested during the process to evalate their capabilities to solve the given problem. That disctinction being made:
 
-- A Genome can be mutated or crossed with other genome but not a phenotype
+- A Genome can be mutated or crossed with other genomes but not a phenotype
 - A phenotype can produce results with given inputs but not a genome
 
-Thus, even if they are closely related, one should use different objects to describe Genome (or Genotype) and Phenotype (or Network).
-The same goes for Node (or Neuron) and Node gene (or neuron gene) and Connexion (or Axon) and Connexion gene (or Axon gene).
+Thus, even if they are closely related, one should use different objects to describe a Genome (or Genotype) and a Phenotype (or Network).
+The same goes for a Node (or Neuron) and its corresponding Node gene (or neuron gene) and a Connexion (or Axon) with its corresponding Connexion gene (or Axon gene).
+
+In the rest of the document, we will use the following terms to designate the type of objects:
+
+- Neat : the object that run the simulation
+- Genome: the object that represent the genome
+- Phenotype: a network object (produce outputs with given inputs)
+- Connexion: an object representing a connexion within a phenotype
+- ConnexionGene: an object representing the gene of a Connexion
+- Node: an object representing a node within a Phenotype
+- NodeGene: an object representing a Node gene
+- Configuration: An object representing the data needed to run a simulation
+- Function: An object representing all functions needed in the NEAT algorithm
+
+The exact architecture of the programm is not discussed here. In the source code proposed in this repo, I choosed to move most of the methods into a static class called NeatUtils. This class contains all functions to perform manipulations over genes and phonotypes. The other classes only keep the minimum amount of informations. The aim is to provide users the flexibility of replacing any component to easily build variations.
+
+Also note that I choosed the following names in the source code that differs from this documentation:
+Neuron instead of Node
+Axon instead of Connexion
+Genotype instead of Genome
 
 ### Encoding the genome
 
-The Encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/tree/main/documentation/net-presentation.md). Here are the author prescription:
+The Encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/tree/main/documentation/net-presentation.md). Here are the authors prescriptions:
 
 > Genomes are linear representations of network connectivity (Figure 2). Each genome includes a list of connection
 > genes, each of which refers to two node genes being connected.
 
-From the description above we deduce that an object of type Genome has at least two properties:
+An object of type Genome has at least two properties:
 
 - One array of type "node gene"
 - One array of type "connexion gene"
@@ -56,7 +75,12 @@ An object of type "node gene"
 
 # NEAT rules
 
-### Trackling topological changes
+### Tracking topological changes
+
+Tracking topological changes will provide us a simple way to perform speciations and thus:
+
+- Make relevant crossovers with individuals of the same species.
+- Protect structural innovations that perform worse than top one.
 
 > Whenever a new gene appears (through structural mutation), a global innovation number is incremented
 > and assigned to that gene. The innovation numbers thus represent a chronology of the
