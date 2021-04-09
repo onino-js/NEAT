@@ -11,7 +11,7 @@
     "test": "jest --coverage"
   },
   "keywords": [],
-  "author": "Sébastin Pinard",
+  "author": "Sébastien Pinard",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.13.14",
