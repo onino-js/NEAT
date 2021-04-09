@@ -43,6 +43,7 @@ Also notice that I choosed the following names in the source code that differs f
 
 ### Encoding the genome
 
+Now that we have a Genome ...
 The Encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md). Here are the authors prescriptions:
 
 > Genomes are linear representations of network connectivity (Figure 2). Each genome includes a list of connection

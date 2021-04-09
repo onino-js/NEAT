@@ -7,6 +7,10 @@ More informations about NEAT are available in [the original paper](https://www.c
 
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
+This library has been designed for educational purposes. In case you want to explore what NEAT can offers to solve complex problems, I suggest you to follow the NEAT implementation steps to have your own implementation with your favorite language.
+
+Any suggestion of modification or improvement are welcome.
+
 ### Contents
 
 - [Getting Started](#getting-started)
