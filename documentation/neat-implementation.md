@@ -10,7 +10,7 @@ A NEAT algorithm is a variation of more common Genetic algorithm which optimize 
 
 Moreover, to understand the motivations behind the NEAT algorithm and the choices made for its implementation, I suggest you to read the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md) before going forward.
 
-The algorithm will be composed of objects and arrays of objects, and functions that manipulate those objects. The aim is to define all the type of objects,
+The algorithm will be composed of objects, collections of objects, and functions tha manipulates those objects and collections.
 
 In the rest of the document, we will use the following terms to designate the type of objects:
 
@@ -25,7 +25,9 @@ In the rest of the document, we will use the following terms to designate the ty
 - Configuration: An object representing the data needed to run a simulation
 - Function: An object representing all functions needed in the NEAT algorithm
 
-It is important to make a distinction between Genome objects and Phenotype (or Individual, or Network). A NEAT algorithm manipulates Genomes and genes to produce new populations. The correspondings phenotypes are tested during the process to evalate their capabilities to solve the given problem. That disctinction being made:
+The aim of the exercise is to define the properties of each object and all the functions with high level computing steps.
+
+Before begining, it is important to make a distinction between Genome objects and Phenotype (or Individual, or Network). A NEAT algorithm manipulates Genomes and genes to produce new populations. The correspondings phenotypes are tested during the process to evalate their capabilities to solve the given problem. That disctinction being made:
 
 - A Genome can be mutated or crossed with other genomes but not a phenotype
 - A phenotype can produce results with given inputs but not a genome
@@ -35,15 +37,10 @@ The same goes for a Node (or Neuron) and its corresponding Node gene (or neuron 
 
 The exact architecture of the programm is not discussed here. In the source code proposed in this repo, I choosed to move most of the methods into a static class called NeatUtils. This class contains all functions to perform manipulations over genes and phonotypes. The remainings classes only keep the minimum amount of informations. The aim is to provide users the flexibility to replace any component and easily build variations of the algorithm.
 
-Also notice that I choosed the following names in the source code that differs from this documentation:
-
-- Neuron instead of Node
-- Axon instead of Connexion
-- Genotype instead of Genome
+The first step to develop a genetic algorithm is to define the encoding method for the Genome, and thus the properties of the Genome object.
 
 ### Encoding the genome
 
-Now that we have a Genome ...
 The Encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md). Here are the authors prescriptions:
 
 > Genomes are linear representations of network connectivity (Figure 2). Each genome includes a list of connection
@@ -51,10 +48,10 @@ The Encoding has been choosen to solve the problems described in the [NEAT prese
 
 An object of type Genome has at least two properties:
 
-- One array of type "node gene"
-- One array of type "connexion gene"
+- One collection of type "node gene"
+- One collection of type "connexion gene"
 
-Use of indexed array insure the linear representation.
+Use of indexed arrays for collections insure the linear representation.
 
 > Node genes provide a list of inputs, hidden nodes, and outputs that can be connected. Each connection gene
 > specifies the in-node, the out-node, the weight of the connection, whether or not the
@@ -105,12 +102,19 @@ In the Neat process, those instructions take place during the creation of new po
 Method: Track a structural mutation of a Genome
 
 1. Get the max innovation number from all genes of all Genomes of the population.
+
 2. Create new Gene from the mutation (described here XXX).
+
 3. Check if the mutation has alread been created.
+
 4. If mutation is new, increment the max innovation number.
+
 5. Create the new Gene.
+
 6. Assign this max innovation number to the new Gene innovation property.
+
 7. Store the new Gene into an array to perform step 3 with next genes.
+
 8. Reproduce process for each gene of the genome.
 ```
 
@@ -165,6 +169,10 @@ Method: Speciate a new Genome within the population
 
 ### Fitness evaluation
 
+The fitness evaluation is closely related to the problem we try to solve using a neural network. This evaluation is performed during any GA process with a user provided function that takes a phenotype as parameters and returns a number. The more that number is elevated, the more the phenotype perform well in solving the problem.
+
+A NEAT has a specificity which is to calculate an adjusted fitness in order to protect species again each other.
+
 > As the reproduction mechanism for NEAT, we use explicit fitness sharing (Goldberg
 > and Richardson, 1987), where organisms in the same species must share the fitness
 > of their niche. Thus, a species cannot afford to become too big even if many of its
@@ -175,15 +183,31 @@ Method: Speciate a new Genome within the population
 
 ![Distance in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/adjusted-fitness-equation.png?raw=true, "Distance in neat algorithm")
 
-> The sharing function sh is set to 0 when distance δ(i,P n j) is above the threshold δt ;
-> otherwise, sh(δ(i, j)) is set to 1 (Spears, 1995). Thus, j=1 sh(δ(i, j)) reduces to the
-> number of organisms in the same species as organism i. This reduction is natural since
-> species are already clustered by compatibility using the threshold δ t .
+_Equation 2: The sharing function sh is set to 0 when distance δ(i,P n j) is above the threshold δt ;
+otherwise, sh(δ(i, j)) is set to 1 (Spears, 1995). Thus, j=1 sh(δ(i, j)) reduces to the
+number of organisms in the same species as organism i. This reduction is natural since
+species are already clustered by compatibility using the threshold δ t._
+
+Notice here that the sh function has to be calculated for each Genome with other genomes of the entire population. In other words, the existing species are not explicitly taken into account during the fitness evaluation. This is because species vhave been build on random representants. This implies the adjusted fitness cannot be computed independently for each Genome. The whole population at a given iteration step is taken as parameter to the evaluation function. Taken that into account, the steps for the adjusted fitness evaluation of a given population of Genomes would be close to:
+
+```
+Method: Evaluating adjusted fitness of a population of Genomes
+
+1. For each genome, build the corresponding Phenotype
+
+2. For each Phenotype, evaluate and update the fitness using the user provided function
+
+3. For each Phenotype, evaluate the adjusted fitness using the equation 2
+
+```
+
+The adjusted fitnesses will be used to make a selection over the population.
 
 ### Population selection
 
-> Every species is
-> assigned a potentially different number of offspring in proportion to the sum of ad-
+Selecting a population consist in removing the worse performers. The amount of individuals to be removed is defined in the Configuration.
+
+> Every species is assigned a potentially different number of offspring in proportion to the sum of ad-
 > justed fitnesses fi 0 of its member organisms. Species then reproduce by first eliminating
 > the lowest performing members from the population. The entire population is then
 > replaced by the offspring of the remaining organisms in each species.
@@ -233,3 +257,5 @@ genes (those that do not match in the end) are inherited from the more fit paren
 this case, equal fitnesses are assumed, so the disjoint and excess genes are also inherited
 randomly. The disabled genes may become enabled again in future generations: there’s
 a preset chance that an inherited gene is disabled if it is disabled in either parent._
+
+### Putting all together
