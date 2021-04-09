@@ -1,7 +1,6 @@
 # NEAT implementation
 
-The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of computing steps over objects). The description is language agnostic so that a developper would easily reproduce a NEAT in any programming language.
-All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf).
+The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of high level computing steps). The description is language agnostic so that a developper would easily reproduce a NEAT in any programming language. All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf).
 
 ### Introduction
 
@@ -22,6 +21,7 @@ In the rest of the document, we will use the following terms to designate the ty
 - ConnexionGene: an object representing the gene of a Connexion
 - Node: an object representing a node within a Phenotype
 - NodeGene: an object representing a Node gene
+- Gene : a NodeGene or a ConnexionGene
 - Configuration: An object representing the data needed to run a simulation
 - Function: An object representing all functions needed in the NEAT algorithm
 
@@ -78,8 +78,6 @@ the phenotype._
 
 An object of type "node gene" ....
 
-# NEAT rules
-
 ### Tracking topological changes
 
 Tracking topological changes will provide us a simple way to perform speciations and thus:
@@ -91,12 +89,25 @@ Tracking topological changes will provide us a simple way to perform speciations
 > and assigned to that gene. The innovation numbers thus represent a chronology of the
 > appearance of every gene in the system.
 
+The innovation appears at the Gene objects (ConnexionGene and NodeGene).
+
 > A possible problem is that the same structural innovation will receive different in-
 > novation numbers in the same generation if it occurs by chance more than once. How-
 > ever, by keeping a list of the innovations that occurred in the current generation, it
 > is possible to ensure that when the same structure arises more than once through in-
 > dependent mutations in the same generation, each identical mutation is assigned the
 > same innovation number. Thus, there is no resultant explosion of innovation numbers.
+
+Method: Creating new Genes from structutal mutation
+=> For each gene during the process
+
+1. get the max innovation number from all genes
+2. Create new Gene from a mutation
+3. Check if the mutation has alread been created (ie. already a new create Gene with same specifictions)
+4. If mutation is new increment the max innovation number
+5. assign this max innovation number to the new Gene innovation property
+6. Create the new Gene
+7. store it into an array to perform step 3
 
 ### Speciation
 
