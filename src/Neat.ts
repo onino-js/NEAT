@@ -71,10 +71,14 @@ export interface INeatConfiguration {
 }
 
 export interface IdistanceConfiguration {
-  c1: number; // Caonstant C1 of the compatibility function TODO - Ref
+  c1: number; // Caonstant C1 of the compatibility function TODO - [link text](./../documentation/glossary.md)
   c2: number; // Caonstant C2 of the compatibility function TODO - Ref
   c3: number; // Caonstant C3 of the compatibility function TODO - Ref
   compatibilityThreshold: number; // If the distance between two phenotypes is below this value, they are considered to be of the same species
+}
+
+interface IfitnessFunction {
+  (input: Phenotype): number; // User provided function to evaluate the fitness of a given phenotype.
 }
 
 const INITIAL_CONFIGURATION: INeatConfiguration = {
@@ -105,9 +109,9 @@ export class Species {
 
 /** Class representing the NEAT algorithm */
 export class Neat {
-  public species: Species[];
-  public configuration: INeatConfiguration = INITIAL_CONFIGURATION;
-  public epoch: number = 0;
+  public species: Species[]; // An array of species representing the whole population
+  public configuration: INeatConfiguration = INITIAL_CONFIGURATION; // A configuration object for the NEAT algorithm
+  private epoch: number = 0; // The actual iteration index
 
   /**
    * Create a Neat instance.
