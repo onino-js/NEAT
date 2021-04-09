@@ -1,0 +1,12 @@
+export const PIPE_GAP = 125;
+export const PIPE_SPEED = 2;
+export const gravity = 9.8;
+export const WORLD_WIDTH = 288;
+export const WORLD_HEIGHT = 512;
+export const PIPE_WIDTH = 52;
+export const PIPE_HEIGHT = 320;
+export const PIPE_DISTANCE = 100;
+export const GRAVITY = 9.8;
+export const LIFT = 1;
+export const BIRD_HEIGHT = 24;
+export const BIRD_WIDTH = 32;
