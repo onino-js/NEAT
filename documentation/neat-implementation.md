@@ -1,18 +1,48 @@
-# NEAT rules
+# NEAT implementation
 
 The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of computing steps over objects). The description is language agnistic so that any developper would easily reproduce a NEAT in any programming language.
 All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf).
 
+### Introduction
+
+For a detailed explanation of NEAT terms, please read the [NEAT glossary](https://github.com/onino-js/NEAT/tree/main/documentation/net-glossary.md).
+
+A Genome is a representation of a phenotype, which is an individual over a population. In the case of a NEAT, an individual is a neural network that can be feed with inputs to produce outputs in order to solve practical problems. All individuals that share the same genome behave exactly the same. This representation can be done in many ways.In the case of a neat implementation, the encoding rules are described in [Encoding the genome](#encoding-the-genome).
+
+To build the algorithm, it is important to make a distinction between Genome objects and Phenotype (or Individual, or Network). A NEAT algorithm manipulates Genomes and genes to produce new populations. The correspondings phenotypes are tested during the process to evalate their capabilities to solve the given problem. That disctinction being made:
+
+- A Genome can be mutated or crossed with other genome but not a phenotype
+- A phenotype can produce results with given inputs but not a genome
+
+Thus, even if they are closely related, one should use different objects to describe Genome (or Genotype) and Phenotype (or Network).
+The same goes for Node (or Neuron) and Node gene (or neuron gene) and Connexion (or Axon) and Connexion gene (or Axon gene).
+
 ### Encoding the genome
 
-> NEAT’s genetic encoding scheme is designed to allow corresponding genes to be easily
-> lined up when two genomes cross over during mating. Genomes are linear represen-
-> tations of network connectivity (Figure 2). Each genome includes a list of connection
-> genes, each of which refers to two node genes being connected. Node genes provide a
-> list of inputs, hidden nodes, and outputs that can be connected. Each connection gene
+The Encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/tree/main/documentation/net-presentation.md). Here are the author prescription:
+
+> Genomes are linear representations of network connectivity (Figure 2). Each genome includes a list of connection
+> genes, each of which refers to two node genes being connected.
+
+From the description above we deduce that an object of type Genome has at least two properties:
+
+- One array of type "node gene"
+- One array of type "connexion gene"
+
+Use of indexed array insure the linear representation.
+
+> Node genes provide a list of inputs, hidden nodes, and outputs that can be connected. Each connection gene
 > specifies the in-node, the out-node, the weight of the connection, whether or not the
 > connection gene is expressed (an enable bit), and an innovation number, which allows
-> finding corresponding genes (as will be explained below).
+> finding corresponding genes.
+
+An object of type Connexion gene has at least four properties:
+
+- One identificator of a node gene for its input (can be an id or the node gene object itself)
+- One identificator of a node gene for its input (can be an id or the node gene object itself)
+- A Number representing the weight of the connexion
+- A boolean representing wether or not the connexion is activated
+- A Number representing the innovation number which will be used to perform crossovers between individuals of the same species.
 
 ![Encoding the genome in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/genotype-encoding.png?raw=true, "Encoding the genome in neat algorithm")
 
@@ -22,6 +52,8 @@ node, and seven connection definitions, one of which is recurrent. The second ge
 disabled, so the connection that it specifies (between nodes 2 and 4) is not expressed in
 the phenotype._
 
+An object of type "node gene"
+
 # NEAT rules
 
 ### Trackling topological changes
@@ -29,6 +61,13 @@ the phenotype._
 > Whenever a new gene appears (through structural mutation), a global innovation number is incremented
 > and assigned to that gene. The innovation numbers thus represent a chronology of the
 > appearance of every gene in the system.
+
+> A possible problem is that the same structural innovation will receive different in-
+> novation numbers in the same generation if it occurs by chance more than once. How-
+> ever, by keeping a list of the innovations that occurred in the current generation, it
+> is possible to ensure that when the same structure arises more than once through in-
+> dependent mutations in the same generation, each identical mutation is assigned the
+> same innovation number. Thus, there is no resultant explosion of innovation numbers.
 
 ### Speciation
 
