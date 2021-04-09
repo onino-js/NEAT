@@ -98,16 +98,18 @@ The innovation appears at the Gene objects (ConnexionGene and NodeGene).
 > dependent mutations in the same generation, each identical mutation is assigned the
 > same innovation number. Thus, there is no resultant explosion of innovation numbers.
 
-Method: Creating new Genes from structutal mutation
-=> For each gene during the process
+In the Neat process, those instructions take place during the creation of new population of Genomes. Eventually, some structural mutations will occur leading to new Genomes. The mutation process should be triggerd in the scope of a tracking process describe below:
 
-1. get the max innovation number from all genes
-2. Create new Gene from a mutation
-3. Check if the mutation has alread been created (ie. already a new create Gene with same specifictions)
-4. If mutation is new increment the max innovation number
-5. assign this max innovation number to the new Gene innovation property
-6. Create the new Gene
-7. store it into an array to perform step 3
+Method: Track a structural mutation of a Genome
+
+1. Get the max innovation number from all genes of all Genomes of the population.
+2. Create new Gene from the mutation (described here XXX).
+3. Check if the mutation has alread been created.
+4. If mutation is new, increment the max innovation number.
+5. Create the new Gene.
+6. Assign this max innovation number to the new Gene innovation property.
+7. Store the new Gene into an array to perform step 3 with next genes.
+8. Reproduce process for each gene of the genome.
 
 ### Speciation
 
