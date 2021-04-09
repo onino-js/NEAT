@@ -7,15 +7,11 @@ All quotes in this document comes from [Evolving Neural Networks through Augment
 
 For a detailed explanation of NEAT terms, please read the [NEAT glossary](https://github.com/onino-js/NEAT/tree/main/documentation/net-glossary.md).
 
-A Genome is a representation of a phenotype, which is an individual over a population. In the case of a NEAT, an individual is a neural network that can be feed with inputs to produce outputs in order to solve practical problems. All individuals that share the same genome behave exactly the same. This representation can be done in many ways.In the case of a neat implementation, the encoding rules are described in [Encoding the genome](#encoding-the-genome).
+A NEAT algorithm is a variation of more common Genetic algorithm which optimize neural networks. To understand the NEAT implementation one should make shure of understanding [the basic implementation of a genetic algorithm](https://github.com/onino-js/NEAT/tree/main/documentation/genetic-algorithm.md) first.
 
-To build the algorithm, it is important to make a distinction between Genome objects and Phenotype (or Individual, or Network). A NEAT algorithm manipulates Genomes and genes to produce new populations. The correspondings phenotypes are tested during the process to evalate their capabilities to solve the given problem. That disctinction being made:
+Moreover, to understand the motivations behind the NEAT algorithm and the choices made for its implementation, I suggest you to read the NEAT presentation before going forward.
 
-- A Genome can be mutated or crossed with other genomes but not a phenotype
-- A phenotype can produce results with given inputs but not a genome
-
-Thus, even if they are closely related, one should use different objects to describe a Genome (or Genotype) and a Phenotype (or Network).
-The same goes for a Node (or Neuron) and its corresponding Node gene (or neuron gene) and a Connexion (or Axon) with its corresponding Connexion gene (or Axon gene).
+The algorithm will be composed of objects and arrays of objects, and functions that manipulate those objects. The aim is to define all the type of objects,
 
 In the rest of the document, we will use the following terms to designate the type of objects:
 
@@ -29,12 +25,21 @@ In the rest of the document, we will use the following terms to designate the ty
 - Configuration: An object representing the data needed to run a simulation
 - Function: An object representing all functions needed in the NEAT algorithm
 
-The exact architecture of the programm is not discussed here. In the source code proposed in this repo, I choosed to move most of the methods into a static class called NeatUtils. This class contains all functions to perform manipulations over genes and phonotypes. The other classes only keep the minimum amount of informations. The aim is to provide users the flexibility of replacing any component to easily build variations.
+It is important to make a distinction between Genome objects and Phenotype (or Individual, or Network). A NEAT algorithm manipulates Genomes and genes to produce new populations. The correspondings phenotypes are tested during the process to evalate their capabilities to solve the given problem. That disctinction being made:
 
-Also note that I choosed the following names in the source code that differs from this documentation:
-Neuron instead of Node
-Axon instead of Connexion
-Genotype instead of Genome
+- A Genome can be mutated or crossed with other genomes but not a phenotype
+- A phenotype can produce results with given inputs but not a genome
+
+Thus, even if they are closely related and often merged into a single entity, one should use different objects to describe a Genome (or Genotype) and a Phenotype (or Network).
+The same goes for a Node (or Neuron) and its corresponding Node gene (or neuron gene) and a Connexion (or Axon) and its corresponding Connexion gene (or Axon gene).
+
+The exact architecture of the programm is not discussed here. In the source code proposed in this repo, I choosed to move most of the methods into a static class called NeatUtils. This class contains all functions to perform manipulations over genes and phonotypes. The remainings classes only keep the minimum amount of informations. The aim is to provide users the flexibility to replace any component and easily build variations of the algorithm.
+
+Also notice that I choosed the following names in the source code that differs from this documentation:
+
+- Neuron instead of Node
+- Axon instead of Connexion
+- Genotype instead of Genome
 
 ### Encoding the genome
 
@@ -71,7 +76,7 @@ node, and seven connection definitions, one of which is recurrent. The second ge
 disabled, so the connection that it specifies (between nodes 2 and 4) is not expressed in
 the phenotype._
 
-An object of type "node gene"
+An object of type "node gene" ....
 
 # NEAT rules
 
