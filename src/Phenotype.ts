@@ -179,50 +179,50 @@ class Phenotype {
   // Create symetric, fully connected phenotype with arbitrary number of hiddens layers
   // [3, 5, 5, 2] represent a graph with 3 inputs, 2 outputs, 2 hiddens layers of 5 nodes each.
   // Nodes of a layer is connected to all nodes of next layer
-  // static generate = (layers: number[]) => {
-  //   let neurons: Neuron[] = [];
-  //   let axons: Axon[] = [];
-  //   const total = layers.reduce((acc, cur) => acc + cur, 0);
+  static generate = (layers: number[]) => {
+    let neurons: Neuron[] = [];
+    let axons: Axon[] = [];
+    const total = layers.reduce((acc, cur) => acc + cur, 0);
 
-  //   // Create array of neurons
-  //   new Array(total).fill(0).forEach((d, i) => {
-  //     const type =
-  //       i < layers[0]
-  //         ? NeuronType.INPUT
-  //         : i < total - layers[layers.length - 1]
-  //         ? NeuronType.HIDDEN
-  //         : NeuronType.OUTPUT;
-  //     const neuron = new Neuron({
-  //       type,
+    // Create array of neurons
+    // TODO - replace that crap by nested array
+    new Array(total).fill(0).forEach((d, i) => {
+      const type =
+        i < layers[0]
+          ? NeuronType.INPUT
+          : i < total - layers[layers.length - 1]
+          ? NeuronType.HIDDEN
+          : NeuronType.OUTPUT;
+      const neuron = new Neuron({
+        type,
+        layerIndex: helpers.getLayerIndex(layers, i),
+      });
+      neurons.push(neuron);
+    });
 
-  //       layerIndex: helpers.getLayerIndex(layers, i),
-  //     });
-  //     neurons.push(neuron);
-  //   });
+    // Create array of axons
+    layers.forEach((layer, layerIndex) => {
+      // if last layer then return
+      if (layerIndex === layers.length - 1) return;
+      // Retreive neurons of concerned layer
+      const currentLayerNeurons = neurons.filter((n, i) => {
+        return n.layerIndex === layerIndex;
+      });
 
-  //   // Create array of axons
-  //   layers.forEach((layer, layerIndex) => {
-  //     // if last layer then return
-  //     if (layerIndex === layers.length - 1) return;
-  //     // Retreive neurons of concerned layer
-  //     const currentLayerNeurons = neurons.filter((n, i) => {
-  //       return n.layerIndex === layerIndex;
-  //     });
-
-  //     // Retreive neurons of next layer
-  //     const nextLayerNeurons = neurons.filter((n, i) => {
-  //       return n.layerIndex === layerIndex + 1;
-  //     });
-  //     // For each neuron of current, create connection to all neurons of next layer
-  //     currentLayerNeurons.forEach((input) => {
-  //       nextLayerNeurons.forEach((output) => {
-  //         const axon = new Axon({ input, output });
-  //         axons.push(axon);
-  //       });
-  //     });
-  //   });
-  //   return new Phenotype({ neurons, axons, layers });
-  // };
+      // Retreive neurons of next layer
+      const nextLayerNeurons = neurons.filter((n, i) => {
+        return n.layerIndex === layerIndex + 1;
+      });
+      // For each neuron of current, create connection to all neurons of next layer
+      currentLayerNeurons.forEach((input) => {
+        nextLayerNeurons.forEach((output) => {
+          const axon = new Axon({ input, output });
+          axons.push(axon);
+        });
+      });
+    });
+    return new Phenotype({ neurons, axons, layers });
+  };
 }
 
 export { Phenotype };

@@ -4,38 +4,26 @@ The aim of this document is to synthetize the rules for designing a NEAT and to 
 
 ### Introduction
 
-For a detailed explanation of NEAT terms, please read the [NEAT glossary](https://github.com/onino-js/NEAT/blob/main/documentation/net-glossary.md).
-
-A NEAT algorithm is a variation of more common Genetic algorithm which optimize neural networks. To understand the NEAT implementation one should make shure of understanding [the basic implementation of a genetic algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md) first.
+A NEAT algorithm is a variation of more common Genetic algorithm which optimize neural networks. Before going further, be sure to know and understand [the specific Genetic aglgorithms and NEAT terms](https://github.com/onino-js/NEAT/blob/main/documentation/net-glossary.md), and also [the basic implementation of a genetic algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md).
 
 Moreover, to understand the motivations behind the NEAT algorithm and the choices made for its implementation, I suggest you to read the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md) before going forward.
 
-The algorithm will be composed of objects, collections of objects, and functions tha manipulates those objects and collections.
+The algorithm we describe here will be composed of objects, collections of objects, and functions tha manipulates those objects and collections.The aim of the exercise is to define the properties of each object and all the functions with high level computing steps. In the rest of the document, we will use the following terms to designate the objects of different types:
 
-In the rest of the document, we will use the following terms to designate the type of objects:
+- Neat : an object that run the simulation.
+- Genome: an object that represent a genome.
+- Phenotype: a network object (produce outputs with given inputs).
+- Connexion: an object representing a connexion within a Phenotype.
+- Node: an object representing a node within a Phenotype.
+- ConnexionGene: an object representing the gene of a Connexion.
+- NodeGene: an object representing the encoded gene of a Node.
+- Gene : a NodeGene or a ConnexionGene.
+- Configuration: An object containing the data needed to run a simulation
+- Functions: An object representing all functions needed in the NEAT algorithm
 
-- Neat : the object that run the simulation
-- Genome: the object that represent the genome
-- Phenotype: a network object (produce outputs with given inputs)
-- Connexion: an object representing a connexion within a phenotype
-- ConnexionGene: an object representing the gene of a Connexion
-- Node: an object representing a node within a Phenotype
-- NodeGene: an object representing a Node gene
-- Gene : a NodeGene or a ConnexionGene
-- Configuration: An object representing the data needed to run a simulation
-- Function: An object representing all functions needed in the NEAT algorithm
+Here we make a distinction between Genome objects and Phenotype objects (or Individual, or Network). A Genome is the encoded representation of a Phenotype, this encoded version can be manipulated by a NEAT algorithm to produce new populations. A Phenotype is an indivial of the population. In the context of a NEAT, an individual is a neural network designed to solve specific problems. A Genome can be mutated or crossed with other genomes but not a phenotype. A phenotype can produce results with given inputs but not a genome. Thus, even if they are closely related and often merged into a single entity, use different objects to represent a Genome (or Genotype) and a Phenotype (or Network). The same goes for a Node (or Neuron) and its corresponding Node gene (or neuron gene) and a Connexion (or Axon) and its corresponding Connexion gene (or Axon gene).
 
-The aim of the exercise is to define the properties of each object and all the functions with high level computing steps.
-
-Before begining, it is important to make a distinction between Genome objects and Phenotype (or Individual, or Network). A NEAT algorithm manipulates Genomes and genes to produce new populations. The correspondings phenotypes are tested during the process to evalate their capabilities to solve the given problem. That disctinction being made:
-
-- A Genome can be mutated or crossed with other genomes but not a phenotype
-- A phenotype can produce results with given inputs but not a genome
-
-Thus, even if they are closely related and often merged into a single entity, one should use different objects to describe a Genome (or Genotype) and a Phenotype (or Network).
-The same goes for a Node (or Neuron) and its corresponding Node gene (or neuron gene) and a Connexion (or Axon) and its corresponding Connexion gene (or Axon gene).
-
-The exact architecture of the programm is not discussed here. In the source code proposed in this repo, I choosed to move most of the methods into a static class called NeatUtils. This class contains all functions to perform manipulations over genes and phonotypes. The remainings classes only keep the minimum amount of informations. The aim is to provide users the flexibility to replace any component and easily build variations of the algorithm.
+The exact architecture of the programm is not discussed here. In the source code proposed in this repo, most of the methods to perform manipulations over genes and phonotypes are moved into a static class called NeatUtils. The remainings classes only keep the minimum amount of informations. The aim is to provide users the flexibility to replace any component of the program and easily build variations of the algorithm. [More informations about customiation here](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md).
 
 The first step to develop a genetic algorithm is to define the encoding method for the Genome, and thus the properties of the Genome object.
 
