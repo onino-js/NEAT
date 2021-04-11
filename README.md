@@ -34,26 +34,10 @@ npm install @onino/neat
 
 # Documentation
 
-### Contents
+### 1. [Getting Started](https://github.com/onino-js/NEAT/blob/main/documentation/1-getting-started.md)
 
-- [Getting Started](https://github.com/onino-js/NEAT/blob/main/documentation/1-getting-started.md)
-- [Contributing](https://github.com/onino-js/NEAT/blob/main/documentation/1-getting-started.md)
-- [License](https://github.com/onino-js/NEAT/blob/main/documentation/1-getting-started.md)
+### 2. [Run exemples](https://github.com/onino-js/NEAT/blob/main/documentation/2-run-examples.md)
 
-### 1. [Getting Started](#getting-started)
+### 3. [Contributing](https://github.com/onino-js/NEAT/blob/main/documentation/3-contributing.md)
 
-### Run exemples
-
-You can run examples in the browser directly using the command line interface.
-
-```
-npm run start:visualizer
-```
-
-### Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-### License
-
-[MIT](https://choosealicense.com/licenses/mit/)
+### 4. [License](https://github.com/onino-js/NEAT/blob/main/documentation/4-licence.md)

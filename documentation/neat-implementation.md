@@ -368,3 +368,9 @@ TODO
 ```
 
 ### Putting all together
+
+#### The configuration objects
+
+#### The Gene
+
+### Testing the implementation
