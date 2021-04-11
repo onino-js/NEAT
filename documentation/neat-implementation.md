@@ -41,8 +41,8 @@ The encoding has been choosen to solve the problems described in the [NEAT prese
 ```
 Object: Genome
 properties:
-    - One collection of type "NodeGene"
-    - One collection of type "ConnexionGene"
+    - One collection of NodeGenes.
+    - One collection of ConnexionGenes.
 ```
 
 Using indexed arrays for collections insure the linear representation.
@@ -50,17 +50,17 @@ Using indexed arrays for collections insure the linear representation.
 ```
 Object: ConnexionGene
 properties:
-    - An input NodeGene
-    - An output NodeGene
-    - A Number representing the weight of the connexion
-    - A boolean representing wether or not the connexion is activated
+    - An input NodeGene.
+    - An output NodeGene.
+    - A Number representing the weight of the connexion.
+    - A boolean representing wether or not the connexion is activated.
     - A Number representing the innovation number.
 ```
 
 ```
 Object: NodeGene
 properties:
-    - The type of node (input, output or hidden)
+    - The type of node (input, output or hidden).
     - A Number representing the innovation number.
 ```
 
@@ -175,7 +175,7 @@ the factor N , the number of genes in the larger genome, normalizes for genome s
 can be set to 1 if both genomes are small, i.e., consist of fewer than 20 genes).
 The distance measure δ allows us to speciate using a compatibility threshold δ t._
 
-Here the authors provide a functional definition of compatibility between two Genomes with an easy implementation.
+Here the authors provide a functional definition of compatibility between two Genomes with an easy implementation. The innovation number assigned to each Gene will allow us to get the number of excess and dijoint genes of Equation 1. Now we can difine the process of sorting individuals by species:
 
 > An ordered list of species is maintained. In each generation, genomes are sequentially
 > placed into species. Each existing species is represented by a random genome inside
@@ -184,7 +184,7 @@ Here the authors provide a functional definition of compatibility between two Ge
 > that species. This way, species do not overlap. 1 If g is not compatible with any existing
 > species, a new species is created with g as its representative.
 
-As a specificity of the NEAT algorithm, we should perforom a speciation of the population before going through the steps of mutations and crossovers. Note that the Neat object should be initialized with one species containing all the population so that a first mutation step can be performed. For a given Genome to be speciated, the steps are:
+As a specificity of the NEAT algorithm, we should perforom a speciation of the population before going through the steps of mutations and crossovers. Note that the Neat object should be initialized with one species containing all the population so that a first mutation step can be performed.
 
 ```
 Function: Speciate a new Genome within the population
