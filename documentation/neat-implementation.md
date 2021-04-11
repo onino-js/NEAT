@@ -205,9 +205,7 @@ Steps:
 
 ### Fitness evaluation
 
-The fitness evaluation is closely related to the problem we try to solve using a neural network. This evaluation is performed during any GA process with a user provided function that takes a phenotype as parameters and returns a number. The more that number is elevated, the more the phenotype perform well in solving the problem.
-
-A NEAT has a specificity which is to calculate an adjusted fitness in order to protect species again each other.
+The fitness evaluation is closely related to the problem we try to solve using a neural network. This evaluation is performed during any GA process for each generation with a user provided function that takes a phenotype as parameter and returns a number. The higher the returned number is, the more the phenotype perform well in solving the problem. In the context of a NEAT, we have to calculate an adjusted fitness in order to protect species again each other.
 
 > As the reproduction mechanism for NEAT, we use explicit fitness sharing (Goldberg
 > and Richardson, 1987), where organisms in the same species must share the fitness
@@ -224,16 +222,16 @@ otherwise, sh(δ(i, j)) is set to 1 (Spears, 1995). Thus, j=1 sh(δ(i, j)) reduc
 number of organisms in the same species as organism i. This reduction is natural since
 species are already clustered by compatibility using the threshold δ t._
 
-Notice here that the sh function has to be calculated for each Genome with other genomes of the entire population. In other words, the existing species are not explicitly taken into account during the fitness evaluation. This is because species vhave been build on random representants. This implies the adjusted fitness cannot be computed independently for each Genome. The whole population at a given iteration step is taken as parameter to the evaluation function. Taken that into account, the steps for the adjusted fitness evaluation of a given population of Genomes would be close to:
+Notice here that the sh function has to be calculated for each Genome with other genomes of the entire population. In other words, the existing species are not explicitly taken into account during the fitness evaluation. This is because species have been built up using random representants. Also the adjusted fitness cannot be computed independently for each Genome. The whole population at a given iteration step is taken as parameter for the evaluation of Equation 2.
 
 ```
 Function: Evaluating adjusted fitness of a Genome.
-Parameters: A collection of Species and the Genome to evaluate.
+Parameters: A collection of Genomes and the Genome to evaluate.
 Returns: The adjusted fitness
 Steps: (Equation 2)
 ```
 
-This method needs to be provided with the whole population sorted ny species in order to evaluate Equation 2. The adjusted fitnesses will be used to make a selection over the population.
+The adjusted fitnesses will be used to make a selection over the population.
 
 ### Population selection
 
@@ -262,13 +260,13 @@ Steps:
     5. Remove the excess of Phenotypes using the fitness as discriminant
 ```
 
-At the end of the process, the initial population is reduced and each species in the population has an exact number of new individuals to be created during the crossover process.
+At the end of the process, the initial population is reduced by X% (X being a userdefined constant) and each species in the population has an exact number of new individuals to be created during the crossover process.
 
 ```
 Object: Configuration
 Properties:
 
-    - The percentage of best performing members allowed to reproduce with crossovers.
+    - The percentage of individuals to die at each generation.
 
 ```
 
@@ -437,7 +435,13 @@ Properties:
 #### The configuration object
 
 Object: Configuration
-Properties: - The percentage of best performing members allowed to reproduce with crossovers
+Properties:
+
+- The percentage of individuals to die at each generation.
+
+- The percentage of best performing members allowed to reproduce with crossovers.
+
+- A fitness threshold to evaluate wether or not two Genomes equally perform or not.
 
 ```
 
