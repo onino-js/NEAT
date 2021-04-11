@@ -229,10 +229,17 @@ Steps:
 
     4. compute the number (N) of offsprings for the next generation
 
-    5. Remove the excess of Phenotypes using the adjusted fitness as discriminant
+    5. Remove the excess of Phenotypes using the fitness as discriminant
 ```
 
-At the end of the process, the initial population is reduced and each species in the population has an exact number of new individuals to be created during the mutation/crossover process.
+At the end of the process, the initial population is reduced and each species in the population has an exact number of new individuals to be created during the crossover process.
+
+Object: Configuration
+Properties:
+
+    - The percentage of best performing members allowed to reproduce with crossovers. - A fitness threshold to evaluate wether or not two Genomes equally perform or not.
+
+```
 
 ### Mutation
 
@@ -251,22 +258,24 @@ get larger. The process is however the same as in a traditional GA. We just have
 > receives the same weight as the old connection.
 
 ```
+
 Object: Configuration
-- Mutation rate for adding a NodeGene
-- Mutation rate for adding a ConnexionGene
-- Mutation rate for changing weigth
+Properties: - Mutation rate for adding a NodeGene - Mutation rate for adding a ConnexionGene - Mutation rate for changing weigth
+
 ```
 
 ```
+
 Method: Make mutations over a population
 Parameters: A Collection of Species
 Returns : The same Collection with eventually different configuration and new members
 Steps :
 
-(For each Species in the population)
-(For each kind member in the Species)
-(For each kind of mutation)
-1. Eventually perform a mutation according to mutation rate
+    (For each Species in the population)
+    (For each kind member in the Species)
+    (For each kind of mutation)
+    1. Eventually perform a mutation according to mutation rate
+
 ```
 
 The different kind of mutation are describe in the following.
@@ -279,20 +288,22 @@ The different kind of mutation are describe in the following.
 ![Connexion mutaion in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/structural-mutation-1.png?raw=true, "Connexion mutaion in neat algorithm")
 
 ```
+
 Method: Add ConnexionGene mutation
 Parameters: A Genome
 Returns : The same Genome with a new ConnexionGene
 Steps :
 
-1. Get all NodeGenes of the Genome
+    1. Get all NodeGenes of the Genome
 
-2. Build a new ConnexionGene Ncg with two randomly chosed NodeGene
+    2. Build a new ConnexionGene Ncg with two randomly chosed NodeGene
 
-3. Check if the ConnexionGene is recurrent
+    3. Check if the ConnexionGene is recurrent
 
-4. If not, add the new ConnexionGene to the Genome
+    4. If not, add the new ConnexionGene to the Genome
 
-5. Perform histirical tracking.
+    5. Perform histirical tracking.
+
 ```
 
 #### Node mutation
@@ -305,39 +316,33 @@ Steps :
 ![Node mutaion in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/structural-mutation-2.png?raw=true, "Node mutaion in neat algorithm")
 
 ```
+
 Method: Add NodeGene mutation
 Parameters: A Genome
 Returns : The same Genome with a new NodeGene and two new ConnexionGenes
 Steps :
 
-1. Pick randomly one ConnexionGene CG of the Genome having a weight W.
+    1. Pick randomly one ConnexionGene CG of the Genome having a weight W.
 
-2. Get the input (I) and outout (O) corresponding NodeGenes.
+    2. Get the input (I) and outout (O) corresponding NodeGenes.
 
-3. Create a new NodeGene Nn.
+    3. Create a new NodeGene Nn.
 
-4. Create a new ConnexionGene with wieght 1, input I and output Nn.
+    4. Create a new ConnexionGene with wieght 1, input I and output Nn.
 
-4. Create a new ConnexionGene with wieght W, input Nn and output O.
+    4. Create a new ConnexionGene with wieght W, input Nn and output O.
 
-5. For each newlt create Gene, perform the historical tracking.
+    5. For each newlt create Gene, perform the historical tracking.
+
 ```
 
 ### Crossover
 
-Crossover is
-
-> If the maximum fitness of a species did not improve in 15
-> generations, the networks in that species were not allowed
-> to reproduce. Otherwise, the top <@2@A (i.e. the elite) of
-> each species reproduced by random mate selection within
-> the elite. In addition, the champion of each species with
-> more than five networks was copied into the next generation unchanged and each elite individual had a 0.1% chance
-> to mate with an elite individual from another species
+Crossover is the operation of creating a new child Genome from two parents Genomes. As part of Neat specification, crossovers are performed within each Species only. The number of children to be produced by crossovers for a Species will depends on the number of members in that Species for the actual generation (truncated atfer the selection process) and the number of members in the next generation (calculated during the selection process). An detailed example of crossover is given Figure 3.
 
 ![Crossover in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/crossover.png?raw=true, "Crossover in neat algorithm")
 
-_Figure 4: Matching up genomes for different network topologies using innovation
+_Figure 3: Matching up genomes for different network topologies using innovation
 numbers. Although Parent 1 and Parent 2 look different, their innovation numbers
 (shown at the top of each gene) tell us which genes match up with which. Even with-
 out any topological analysis, a new structure that combines the overlapping parts of the
@@ -348,29 +353,69 @@ this case, equal fitnesses are assumed, so the disjoint and excess genes are als
 randomly. The disabled genes may become enabled again in future generations: there’s
 a preset chance that an inherited gene is disabled if it is disabled in either parent._
 
+> If the maximum fitness of a species did not improve in 15
+> generations, the networks in that species were not allowed
+> to reproduce. Otherwise, the top 40% (i.e. the elite) of
+> each species reproduced by random mate selection within
+> the elite. In addition, the champion of each species with
+> more than five networks was copied into the next generation unchanged and each elite individual had a 0.1% chance
+> to mate with an elite individual from another species
+
 ```
+
 Method: Crossovers within a Species
 Parameters: A Species and the number of new members to add.
 Returns : The same Species with additionnal members
 Steps :
 
-TODO
+    (As long as the population of the Species didn't reach it's maximal value)
+
+    1. Get the N% of best performing numbers.
+
+    1. Pick randomly two different Genomes (Gp1 and Gp2) from the result.
+
+    2. Create a new Genome (Gn) and put it in the Species.
 
 ```
 
 ```
+
 Method: Crossover two Genes
-Parameters: Two Genes of the same type (Node or Connexion)
-Returns : A new Gene
-Steps :
+Parameters: Two Genomes within the same Species
+Returns : A new Genome
+Steps : 1. Create a new Genome (Gn) with no Gene.
 
-TODO
+    (For each innovation number)
+    2. If the corresponding Gene is present in both Gp1 and Gp2, then pick the Gene randomly from Gp1 and Gp2 and push in into Gn Genes.
+
+    3. If not, pick the corresponding Gene from the best performing parent (or randomly) and add in into Gn.
+
+    4. Add the new created Gene in the Species.
+
+```
+
+This brings two new configuration parameters:
+
+```
+
+Object: Configuration
+Properties: - The percentage of best performing members allowed to reproduce with crossovers - A fitness threshold
+
 ```
 
 ### Putting all together
 
-#### The configuration objects
+#### The configuration object
+
+Object: Configuration
+Properties: - The percentage of best performing members allowed to reproduce with crossovers
+
+```
 
 #### The Gene
 
 ### Testing the implementation
+
+```
+
+```
