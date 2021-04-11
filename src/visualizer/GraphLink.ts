@@ -1,6 +1,5 @@
 import { Iposition } from "./Visualizer";
-import { Axon } from "../Axon";
-import { Neuron, NeuronType } from "../Neuron";
+import { Axon } from "../Phenotype";
 
 /************************************************************/
 /************************class GraphLink**********************/

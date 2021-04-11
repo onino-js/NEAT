@@ -4,9 +4,32 @@
     <meta charset="utf-8" />
     <title>Flappy bird example</title>
     <link rel="stylesheet" href="./index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>
     <script type="text/javascript" src="./index.ts"></script>
   </head>
   <body>
-    <div id="canvas-container"></div>
+    <canvas id="canvas-container">
+      <img
+        id="bird-sprite"
+        src="./assets/sprites/bluebird-midflap.png"
+        width="300"
+        height="227"
+      />
+      <img
+        id="pipe-sprite"
+        src="./assets/sprites/pipe-green.png"
+        width="300"
+        height="227"
+      />
+      <img
+        id="background-sprite"
+        src="./assets/sprites/background-day.png"
+        width="300"
+        height="227"
+      />
+    </canvas>
+    <button id="stop-game">STOP GAME</button>
+    <button id="start-game">START GAME</button>
   </body>
 </html>

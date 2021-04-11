@@ -1,4 +1,5 @@
-import { Neuron, NeuronType } from "../Neuron";
+import { NeuronType } from "../models";
+import { Neuron } from "../Phenotype";
 
 /************************************************************/
 /************************class GrapNode**********************/

@@ -9,7 +9,7 @@ export const helpers = {
   getLayerIndex: (layers: number[], neuronIndex: number): number => {
     layers.forEach((n) => {
       if (n <= 0) {
-        throw new Error("Error: layers should be an array of ositive integer");
+        throw new Error("Error: layers should be an array of positive integer");
       }
     });
     let res = 0;

@@ -1,9 +1,7 @@
-import { helpers } from "./../utils/helpers";
-import { Neuron, NeuronType } from "../Neuron";
 import { Phenotype } from "../Phenotype";
 import { GraphNode, IGraphNodeStyles } from "./GraphNode";
-import { Axon } from "../Axon";
 import { GraphLink } from "./GraphLink";
+import { NeuronType } from "../models";
 
 const INITIAL_VISUALIZER_STYLES = {
   width: 640,
