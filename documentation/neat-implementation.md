@@ -2,7 +2,7 @@
 
 The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of high level computing steps). The description is language agnostic so that a developper would easily reproduce a NEAT in any programming language. All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf).
 
-### Introduction
+## Introduction
 
 A NEAT algorithm is a variation a Genetic algorithm which optimize neural networks. Before going further, you should know [the specific terms of Genetic aglgorithms and NEAT](https://github.com/onino-js/NEAT/blob/main/documentation/neat-glossary.md), and the [the basic implementation of a genetic algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md).
 
@@ -27,7 +27,7 @@ The exact architecture of the programm is not discussed here. In the source code
 
 Let's start the journey. The first step to develop a genetic algorithm is to define the encoding method for the Genome, and thus the properties of the Genome object.
 
-### Encoding the genome
+## Encoding the genome
 
 The encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md). An example is given Figure 1. Here are the authors prescriptions:
 
@@ -44,8 +44,6 @@ properties:
     - One collection of NodeGenes.
     - One collection of ConnexionGenes.
 ```
-
-Using indexed arrays for collections insure the linear representation.
 
 ```
 Object: ConnexionGene
@@ -106,7 +104,7 @@ properties:
     - An output Node
 ```
 
-### Tracking topological changes
+## Tracking topological changes
 
 Tracking topological changes will provide us a simple way to perform speciations and thus:
 
@@ -153,7 +151,7 @@ Steps:
 
 This innovation number is also a central piece to perform speciation over the population as will see in next section.
 
-### Speciation
+## Speciation
 
 A species is a collection of Genomes that are compatible. Two Genomes can produce a child through crossover only if they are compatible.
 Two Genomes compete over each other in the evolution process only if they are compatible.
@@ -203,7 +201,7 @@ Steps:
     5. At the end, if no existing species has been assigned to the Genome, create a new Species for that Genome.
 ```
 
-### Fitness evaluation
+## Fitness evaluation
 
 The fitness evaluation is closely related to the problem we try to solve using a neural network. This evaluation is performed during any GA process for each generation with a user provided function that takes a phenotype as parameter and returns a number. The higher the returned number is, the more the phenotype perform well in solving the problem. In the context of a NEAT, we have to calculate an adjusted fitness in order to protect species again each other.
 
@@ -233,7 +231,7 @@ Steps: (Equation 2)
 
 The adjusted fitnesses will be used to make a selection over the population.
 
-### Population selection
+## Population selection
 
 Selecting a population consist in removing the worse performers. The amount of individuals to be removed is defined in the Configuration as a total percentage of surviving individuals at each step.
 
@@ -270,7 +268,7 @@ Properties:
 
 ```
 
-### Mutation
+## Mutation
 
 A spcificity of the Neat algorithm, is that structural mutations will make the genomes gradually
 get larger. The process is however the same as in a traditional GA. We just have to take different kinds of mutations with different mutation rates.
@@ -307,7 +305,7 @@ Steps :
 
 The different kind of mutation are describe in the following.
 
-#### Connexion mutation
+### Connexion mutation
 
 > New genes are assigned new increasingly higher numbers. In adding a connection, a single new connection gene is added to the end of the
 > genome and given the next available innovation number.
@@ -331,7 +329,7 @@ Steps :
     5. Perform histirical tracking.
 ```
 
-#### Node mutation
+### Node mutation
 
 > In the add node mutation, an existing connection is split and the new node placed where the old connection used to be. The old connection
 > is disabled and two new connections are added to the genome. The new connection
@@ -361,7 +359,7 @@ Steps :
 
 ```
 
-### Crossover
+## Crossover
 
 Crossover is the operation of creating a new child Genome from two parents Genomes. As part of Neat specification, crossovers are performed within each Species only. The number of children to be produced by crossovers for a Species will depends on the number of members in that Species for the actual generation (truncated atfer the selection process) and the number of members in the next generation (calculated during the selection process). An detailed example of crossover is given Figure 3.
 
@@ -430,9 +428,9 @@ Properties:
     - A fitness threshold to evaluate wether or not two Genomes equally perform or not.
 ```
 
-### Putting all together
+## Putting all together
 
-#### The configuration object
+### The configuration object
 
 Object: Configuration
 Properties:
