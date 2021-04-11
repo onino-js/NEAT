@@ -1,10 +1,7 @@
+import { INITIAL_CONFIGURATION } from "./configuration";
 import { Phenotype, Neuron, Axon } from "./Phenotype";
-import { Genome } from "./Genome";
-import {
-  IdistanceConfiguration,
-  INeatConfiguration,
-  NeuronType,
-} from "./models";
+import { AxonGene, Genome, NeuronGene } from "./Genome";
+import { INeatConfiguration, NeuronType } from "./models";
 import { Neat } from "./Neat";
 import { Species } from "./Genome";
 
@@ -13,6 +10,11 @@ import { Species } from "./Genome";
  * [See more information about implementation](https://github.com/onino-js/NEAT/blob/main/documentation/neat-implementation.md)
  */
 class NeatUtils {
+  public configuration = INITIAL_CONFIGURATION;
+  constructor(configuration: Partial<INeatConfiguration>) {
+    Object.assign(this.configuration, configuration);
+    NeatUtils.checkConfiguration(this.configuration);
+  }
   /**
    * Check the configuration object provided by user. Throw error if any.
    *
@@ -47,7 +49,9 @@ class NeatUtils {
   static initializePopulation(neat: Neat) {
     neat.species = [new Species()];
     new Array(neat.configuration.populationSize).fill(0).forEach((n, i) => {
-      neat.species[0].addGenome(new Genome(neat.configuration.shape));
+      neat.species[0].addGenome(
+        new Genome({ shape: neat.configuration.shape })
+      );
     });
   }
 
@@ -77,25 +81,36 @@ class NeatUtils {
   }
 
   /**
-   * Compute the distance between two Genomes using [equation 2](https://github.com/onino-js/NEAT/blob/main/documentation/neat-implementation.md)
+   * Compute the distance between two Genomes using
+   * [equation 2](https://github.com/onino-js/NEAT/blob/main/documentation/neat-implementation.md)
    *
    * @param {[Genome, Genome]} genomes An array of exactly two Genomes.
-   * @param {IdistanceConfiguration} distanceConfiguration A distance configuration object.
    * @return {number} the distance between the two Genomes.
    */
-  static computeDistance({
-    genomes,
-    distanceConfiguration,
-  }: {
-    genomes: [Genome, Genome];
-    distanceConfiguration: IdistanceConfiguration;
-  }): number {
-    const { c1, c2, c3 } = distanceConfiguration;
+  public computeDistance({ genomes }: { genomes: [Genome, Genome] }): number {
+    const { c1, c2, c3 } = this.configuration.distanceConfiguration;
     const E = NeatUtils.computeNumberOfExcessGenes(genomes);
     const D = NeatUtils.computeNumberOfDisjointGenes(genomes);
     const W = NeatUtils.computeAverageWieghtDifference(genomes);
     const N = Math.max(genomes[0].genes.length, genomes[1].genes.length);
     return (c1 * E) / N + (c2 * D) / N + c3 * W;
+  }
+
+  /**
+   * Compute the number of genes who missmatch between two genomes.
+   *
+   * @param {[Genome, Genome]} genomes An array of exactly two Genomes.
+   * @return {number} the number of disjoint genes.
+   */
+  static computeNumberOfMissmatchGenes(genomes: [Genome, Genome]): number {
+    return genomes[0].genes
+      .concat(genomes[1].genes)
+      .map((g) => g.innovation)
+      .reduce(
+        (acc, cur, i, arr) =>
+          arr.filter((a) => a === cur).length === 2 ? acc : acc + 1,
+        0
+      );
   }
 
   /**
@@ -115,24 +130,121 @@ class NeatUtils {
    * @return {number} the number of disjoint genes.
    */
   static computeNumberOfExcessGenes(genomes: [Genome, Genome]): number {
-    return 0;
+    const genes1 = NeatUtils.getGenesIndexedByInnovation(genomes[0].axonGenes);
+    const genes2 = NeatUtils.getGenesIndexedByInnovation(genomes[1].axonGenes);
+    return Math.abs(genes1.length - genes2.length);
   }
 
   /**
-   * Compute the average weight difference between two genomes.
+   * Compute the average weight difference of matching genes between two genomes.
    *
    * @param {[Genome, Genome]} genomes An array of exactly two Genomes.
-   * @return {number} the number of disjoint genes.
+   * @return {number} the average weight difference of matching genes.
    */
   static computeAverageWieghtDifference(genomes: [Genome, Genome]): number {
     return 0;
   }
 
+  static getGenesIndexedByInnovation(genes: AxonGene[]): AxonGene[] {
+    let result = [];
+    genes.forEach((g) => {
+      result[g.innovation] = g;
+    });
+    return result;
+  }
+
+  /**
+   * Compute the adjusted fitness of a Genome.
+   *
+   * @param {[Phenotype, Phenotype]} phenotypes An array of exactly two Phenotypes.
+   * @return {number} The adjusted fitness of the phenotype.
+   */
+  public computeAdjustedFitness(
+    phenotype: Phenotype,
+    population: Phenotype[]
+  ): number {
+    const sh = (d: number) =>
+      d > this.configuration.distanceConfiguration.compatibilityThreshold
+        ? 0
+        : 1;
+    const fitness = this.configuration.fitnessFunction(phenotype);
+    let sumSh = population.reduce((acc, cur) => {
+      const d = this.computeDistance({
+        genomes: [cur.genome, phenotype.genome],
+      });
+      return acc + sh(d);
+    }, 0);
+    return fitness / sumSh;
+  }
+
+  /**
+   * Make a selection over a population of species
+   *
+   * @param {Species[]} species An array of exactly two Phenotypes.
+   * @return {Species[]} The adjusted fitness of the phenotype.
+   */
+  public selectPopulation(species: Species[]): Species[] {
+    const fs = species.map((s) =>
+      s.genomes.reduce(
+        (acc, cur) =>
+          acc +
+          this.computeAdjustedFitness(
+            Phenotype.create(cur),
+            NeatUtils.getPopulationFromSpecies(species)
+          ),
+        0
+      )
+    );
+    const totFs = fs.reduce((cur, acc) => acc + cur, 0);
+    const percentages = fs.map((f) => f / totFs);
+    return species;
+  }
+
+  /**
+   * Get a flat array of Phenotypes from a nested array of Genomes (Species)
+   *
+   * @param {Species[]} species An array of exactly two Phenotypes.
+   * @return {Phenotype[]} An array of Phenotypes.
+   */
+  static getPopulationFromSpecies(species: Species[]): Phenotype[] {
+    return species
+      .map((s) => s.genomes)
+      .flat()
+      .map((g) => Phenotype.create(g));
+  }
+
   private getAllGenomes(neat: Neat) {}
 
-  // Create symetric, fully connected phenotype with arbitrary number of hiddens layers
-  // [3, 5, 5, 2] represent a graph with 3 inputs, 2 outputs, 2 hiddens layers of 5 nodes each.
-  // Nodes of a layer is connected to all nodes of next layer
+  /**
+   * Get an array of NeuronGene object from a shape.
+   *
+   * @param {number[]} shape A shape object.
+   * @return {NeuronGene[]} An array of NeuronGene with number of input, hidden and output nodes defined in shape.
+   */
+  static getNeuronGenesFromShape(shape: number[]) {
+    let res: NeuronGene[] = [];
+    shape.forEach((layer, layerIndex) => {
+      new Array(layer).fill(0).forEach((n) => {
+        const type =
+          layerIndex === 0
+            ? NeuronType.INPUT
+            : layerIndex > 0 && layerIndex < shape.length - 1
+            ? NeuronType.HIDDEN
+            : NeuronType.OUTPUT;
+        res.push(new NeuronGene({ type }));
+      });
+    });
+    return res;
+  }
+
+  /**
+   * Create symetric, fully connected phenotype with arbitrary number of hiddens layers
+   * 3, 5, 5, 2] represent a graph with 3 inputs, 2 outputs, 2 hiddens layers of 5 nodes each.
+   *  Nodes of a layer is connected to all nodes of next layer
+   *
+   * @param {number[]} shape A shape object.
+   * @return {Phenotype} A perceptron network
+   */
   static generatePerceptron = (layers: number[]) => {
     NeatUtils.checkShape(layers);
     let neurons: Neuron[] = [];

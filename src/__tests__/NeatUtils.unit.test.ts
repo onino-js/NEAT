@@ -1,3 +1,5 @@
+import { NeuronType } from "./../models";
+import { AxonGene, Genome, NeuronGene } from "../Genome";
 import { NeatUtils } from "./../NeatUtils";
 
 describe("class NeatUtils", () => {
@@ -46,10 +48,12 @@ describe("class NeatUtils", () => {
       expect(phenotype.hiddenNodes).toHaveLength(5);
     });
     it("Returns a phenotype with correct number of output nodes", () => {
-      let phenotype = NeatUtils.generatePerceptron([1, 1]);
-      expect(phenotype.outputNodes).toHaveLength(1);
+      let shape = [1, 1];
+      let phenotype = NeatUtils.generatePerceptron(shape);
+      expect(phenotype.outputNodes).toHaveLength(shape[1]);
+      shape = [1, 1, 5];
       phenotype = NeatUtils.generatePerceptron([1, 1, 5]);
-      expect(phenotype.outputNodes).toHaveLength(5);
+      expect(phenotype.outputNodes).toHaveLength(shape[2]);
     });
     it("Returns a phenotype with correct number of connexions", () => {
       let phenotype = NeatUtils.generatePerceptron([1, 1]);
@@ -58,5 +62,59 @@ describe("class NeatUtils", () => {
       expect(phenotype.axons).toHaveLength(6);
     });
   });
-  describe("computeNumberOfDisjointGenes", () => {});
+  describe("getNeuronGenesFromShape", () => {
+    it("Returns an array of Genes", () => {
+      let shape = [1, 1];
+      let genes = NeatUtils.getNeuronGenesFromShape(shape);
+      expect(genes.length).toEqual(2);
+      expect(genes.filter((g) => g.type === NeuronType.INPUT).length).toEqual(
+        shape[0]
+      );
+      expect(genes.filter((g) => g.type === NeuronType.OUTPUT).length).toEqual(
+        shape[1]
+      );
+      shape = [2, 3, 4];
+      genes = NeatUtils.getNeuronGenesFromShape(shape);
+      expect(genes.length).toEqual(2 + 3 + 4);
+      expect(genes.filter((g) => g.type === NeuronType.INPUT).length).toEqual(
+        shape[0]
+      );
+      expect(genes.filter((g) => g.type === NeuronType.OUTPUT).length).toEqual(
+        shape[2]
+      );
+      expect(genes.filter((g) => g.type === NeuronType.HIDDEN).length).toEqual(
+        shape[1]
+      );
+    });
+  });
+  describe("computeNumberOfMissmatchGenes", () => {
+    const neuronGenes = [
+      new NeuronGene({ innovation: 1 }),
+      new NeuronGene({ innovation: 2 }),
+      new NeuronGene({ innovation: 3 }),
+    ];
+    const axonGenes1 = [
+      new AxonGene({ innovation: 4 }),
+      new AxonGene({ innovation: 5 }),
+      new AxonGene({ innovation: 6 }),
+    ];
+    const axonGenes2 = [
+      new AxonGene({ innovation: 4 }),
+      new AxonGene({ innovation: 5 }),
+      new AxonGene({ innovation: 6 }),
+    ];
+    const genome1 = new Genome({ neuronGenes, axonGenes: axonGenes1 });
+    const genome2 = new Genome({ neuronGenes, axonGenes: axonGenes2 });
+    let d = NeatUtils.computeNumberOfMissmatchGenes([genome1, genome2]);
+    expect(d).toEqual(0);
+    genome2.axonGenes[2].innovation = 7;
+    d = NeatUtils.computeNumberOfMissmatchGenes([genome1, genome2]);
+    expect(d).toEqual(2);
+    genome2.neuronGenes[2].innovation = 8; // neuronGenes are the same in both genomes
+    d = NeatUtils.computeNumberOfMissmatchGenes([genome1, genome2]);
+    expect(d).toEqual(2);
+    genome2.axonGenes[0].innovation = 9;
+    d = NeatUtils.computeNumberOfMissmatchGenes([genome1, genome2]);
+    expect(d).toEqual(4);
+  });
 });

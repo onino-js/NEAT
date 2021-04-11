@@ -3,11 +3,12 @@
     "module": "CommonJS",
     "outDir": "./build",
     "allowJs": true,
-    "target": "es5",
+    "target": "es2019",
     "moduleResolution": "Node",
     "sourceMap": true,
     "declaration": true,
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "downlevelIteration": true
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules", "src/**/*.test.ts"]

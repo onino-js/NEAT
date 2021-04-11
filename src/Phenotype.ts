@@ -3,18 +3,22 @@ import { NeuronType } from "./models";
 import { Identifiable } from "./utils/Identifiable";
 
 class Phenotype extends Identifiable {
-  public genotype: Genome;
+  public genome: Genome;
   public neurons: Neuron[];
   public axons: Axon[];
   public fitness: number;
   public outputValues: number[] = [];
   public layers?: number[];
-  constructor(opt: Partial<Phenotype>) {
+  constructor(opt?: Partial<Phenotype>) {
     super();
     Object.assign(this, opt);
   }
   public feedForward(inputs: number[]): number[] {
     return this.outputValues;
+  }
+
+  static create(genome: Genome): Phenotype {
+    return new Phenotype();
   }
 
   get inputNodes() {

@@ -17,4 +17,5 @@ export const INITIAL_CONFIGURATION: INeatConfiguration = {
     c3: 1,
     compatibilityThreshold: 1.5,
   },
+  fitnessFunction: (input) => 0,
 };

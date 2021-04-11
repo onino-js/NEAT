@@ -23,7 +23,7 @@ The algorithm we describe here will be composed of objects, collections of objec
 
 Here we make a distinction between Genome objects and Phenotype objects (or Individual, or Network). A Genome is the encoded representation of a Phenotype, this encoded version can be manipulated by a NEAT algorithm to produce new populations. A Phenotype is an indivial of the population. In the context of a NEAT, an individual is a neural network designed to solve a specific problem. A Genome can be mutated or crossed with other genomes but not a phenotype. A phenotype can produce results with given inputs but not a genome. Thus, even if they are closely related and often merged into a single entity, we prefer to use different objects to represent a Genome (or Genotype) and a Phenotype (or Network). The same goes for a Node (or Neuron) and its corresponding Node gene (or neuron gene) and a Connexion (or Axon) and its corresponding Connexion gene (or Axon gene).
 
-The exact architecture of the programm is not discussed here. In the source code proposed in this repository, most of the functions to perform manipulations over genes and phonotypes are moved into a static class called NeatUtils and writted as pure functions with low level of implication. The classes reprensenting objects only keep the minimum amount of informations. The aim is to provide users the flexibility to replace any component of the program and easily build variations of the algorithm. [More informations about customization here](https://github.com/onino-js/NEAT/blob/main/documentation/3-customization.md).
+The exact architecture of the programm is not discussed here. In the source code proposed in this repository, most of the functions to perform manipulations over genes and phonotypes are moved into a class called NeatUtils. The classes reprensenting objects only keep the minimum amount of informations. The aim is to provide users the flexibility to replace any component of the program and easily build variations of the algorithm. [More informations about customization here](https://github.com/onino-js/NEAT/blob/main/documentation/3-customization.md).
 
 Let's start the journey. The first step to develop a genetic algorithm is to define the encoding method for the Genome, and thus the properties of the Genome object.
 
@@ -229,7 +229,14 @@ Returns: The adjusted fitness
 Steps: (Equation 2)
 ```
 
-The adjusted fitnesses will be used to make a selection over the population.
+The adjusted fitnesses will be used to make a selection over the population. We also have introduced a new configuration parameter which is the distance threshold to calculate sh function in Equation 2:
+
+```
+Object: EvaConfiguration.
+properties:
+
+- The distance threshold used to evaluate the adjusted fitness
+```
 
 ## Population selection
 

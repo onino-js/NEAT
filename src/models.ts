@@ -21,6 +21,7 @@ export interface INeatConfiguration {
   maxEpoch: number; // The maximum number of iteration of the NEAT algorithm
   shape: [number, number, number]; // The initial shape of the network. The first number is the number of inputs, then hiddens and outputs.
   distanceConfiguration: IdistanceConfiguration; // A object containing informations for the distance calculation. The distance between phenotypes is used to perform speciation.
+  fitnessFunction: IfitnessFunction;
 }
 
 export interface IdistanceConfiguration {
