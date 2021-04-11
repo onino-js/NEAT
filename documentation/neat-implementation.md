@@ -197,7 +197,7 @@ species are already clustered by compatibility using the threshold δ t._
 Notice here that the sh function has to be calculated for each Genome with other genomes of the entire population. In other words, the existing species are not explicitly taken into account during the fitness evaluation. This is because species vhave been build on random representants. This implies the adjusted fitness cannot be computed independently for each Genome. The whole population at a given iteration step is taken as parameter to the evaluation function. Taken that into account, the steps for the adjusted fitness evaluation of a given population of Genomes would be close to:
 
 ```
-Method: Evaluating adjusted fitness a Genome.
+Method: Evaluating adjusted fitness of a Genome.
 Parameters: A collection of Species and the Genome to evaluate.
 Returns: The adjusted fitness
 Steps: (Equation 2)
@@ -217,19 +217,19 @@ Selecting a population consist in removing the worse performers. The amount of i
 ```
 Method: Make a selection in the population
 Parameters: A collection of Phenotypes
-Returns : A troncated collection of Phenotypes
+Returns : A truncated collection of Phenotypes
 Steps:
 
-1. Get the population as a collection of Species
+    1. Get the population as a collection of Species
 
-2. Compute the number of total survivors Nt
+    2. Compute the number of total survivors Nt
 
-(For each Species)
-3. compute the average adjusted fitness
+    (For each Species)
+    3. compute the average adjusted fitness
 
-4. compute the number (N) of offsprings for the next generation
+    4. compute the number (N) of offsprings for the next generation
 
-5. Remove the excess of Phenotypes using the adjusted fitness as discriminant
+    5. Remove the excess of Phenotypes using the adjusted fitness as discriminant
 ```
 
 At the end of the process, the initial population is reduced and each species in the population has an exact number of new individuals to be created during the mutation/crossover process.
