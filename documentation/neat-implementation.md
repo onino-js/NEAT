@@ -234,6 +234,7 @@ Steps:
 
 At the end of the process, the initial population is reduced and each species in the population has an exact number of new individuals to be created during the crossover process.
 
+```
 Object: Configuration
 Properties:
 
@@ -258,14 +259,13 @@ get larger. The process is however the same as in a traditional GA. We just have
 > receives the same weight as the old connection.
 
 ```
-
 Object: Configuration
-Properties: - Mutation rate for adding a NodeGene - Mutation rate for adding a ConnexionGene - Mutation rate for changing weigth
+Properties:
 
+    - Mutation rate for adding a NodeGene - Mutation rate for adding a ConnexionGene - Mutation rate for changing weigth
 ```
 
 ```
-
 Method: Make mutations over a population
 Parameters: A Collection of Species
 Returns : The same Collection with eventually different configuration and new members
@@ -275,7 +275,6 @@ Steps :
     (For each kind member in the Species)
     (For each kind of mutation)
     1. Eventually perform a mutation according to mutation rate
-
 ```
 
 The different kind of mutation are describe in the following.
@@ -288,7 +287,6 @@ The different kind of mutation are describe in the following.
 ![Connexion mutaion in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/structural-mutation-1.png?raw=true, "Connexion mutaion in neat algorithm")
 
 ```
-
 Method: Add ConnexionGene mutation
 Parameters: A Genome
 Returns : The same Genome with a new ConnexionGene
@@ -303,7 +301,6 @@ Steps :
     4. If not, add the new ConnexionGene to the Genome
 
     5. Perform histirical tracking.
-
 ```
 
 #### Node mutation
@@ -415,6 +412,8 @@ Properties: - The percentage of best performing members allowed to reproduce wit
 #### The Gene
 
 ### Testing the implementation
+
+```
 
 ```
 
