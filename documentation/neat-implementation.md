@@ -37,8 +37,8 @@ The Encoding has been choosen to solve the problems described in the [NEAT prese
 ```
 Object: Genome
 properties:
-- One collection of type "node gene"
-- One collection of type "connexion gene"
+    - One collection of type "node gene"
+    - One collection of type "connexion gene"
 ```
 
 Use of indexed arrays for collections insure the linear representation.
@@ -51,17 +51,17 @@ Use of indexed arrays for collections insure the linear representation.
 ```
 Object: ConnexionGene
 properties:
-- One identificator of a node gene for its input (can be an id or the node gene object itself)
-- One identificator of a node gene for its input (can be an id or the node gene object itself)
-- A Number representing the weight of the connexion
-- A boolean representing wether or not the connexion is activated
-- A Number representing the innovation number which will be used to perform crossovers between individuals of the same species.
+    - One identificator of a node gene for its input (can be an id or the node gene object itself)
+    - One identificator of a node gene for its input (can be an id or the node gene object itself)
+    - A Number representing the weight of the connexion
+    - A boolean representing wether or not the connexion is activated
+    - A Number representing the innovation number which will be used to perform crossovers between individuals of the same species.
 ```
 
 Also we need to define a function that tells us wether or not two Nodes can be connected:
 
 ```
-Method: Can Nodes connect to each other ?
+Function: Can Nodes connect to each other ?
 Parameters: Node 1, Node 2
 returns: yes or not
 ```
@@ -99,26 +99,26 @@ The innovation appears in the Gene objects (ConnexionGene and NodeGene), it is a
 In the Neat process, those instructions take place during the creation of new population of Genomes. Eventually, some structural mutations will occur leading to new Genomes. The mutation process should be triggerd in the scope of a tracking process describe below:
 
 ```
-Method: Track a structural mutation of a Genome
+Function: Track a structural mutation of a Genome
 Parameters: The new Gene to be created and a collection of all existing Genes.
 Returns: The max innovation number and the new Gene with an updtade innovation number property.
 Steps:
 
-1. Get the max innovation number from all genes of all Genomes of the population.
+    1. Get the max innovation number from all genes of all Genomes of the population.
 
-2. Create new Gene from the mutation (described here XXX).
+    2. Create new Gene from the mutation (described here XXX).
 
-3. Check if the mutation has alread been created.
+    3. Check if the mutation has alread been created.
 
-4. If mutation is new, increment the max innovation number.
+    4. If mutation is new, increment the max innovation number.
 
-5. Create the new Gene.
+    5. Create the new Gene.
 
-6. Assign this max innovation number to the new Gene innovation property.
+    6. Assign this max innovation number to the new Gene innovation property.
 
-7. Store the new Gene into an array to perform step 3 with next genes.
+    7. Store the new Gene into an array to perform step 3 with next genes.
 
-8. Reproduce process for each gene of the genome.
+    8. Reproduce process for each gene of the genome.
 ```
 
 This innovation number is also a central piece to perform speciation over the population as will see in next section.
@@ -157,20 +157,20 @@ Here the authors provide a functional definition of compatibility between two Ge
 As a specificity of the NEAT algorithm, we should perforom a speciation of the population before going through the steps of mutations and crossovers. Note that the Neat object should be initialized with one species containing all the population so that a first mutation step can be performed. For a given Genome to be speciated, the steps are:
 
 ```
-Method: Speciate a new Genome within the population
+Function: Speciate a new Genome within the population
 Parameters: A collection of Species and the Genome to speciate
 Returns: The species the Genome belongs to
 Steps:
 
-1. For Each species of the population, pick a random representant and build a representant array
+    1. For Each species of the population, pick a random representant and build a representant array
 
-2. Compute the distance between the Genome and the first representant using equation 1
+    2. Compute the distance between the Genome and the first representant using equation 1
 
-3. If the distance is below a threshold (defined in configuration), put the Genome into the same Species than the representant.
+    3. If the distance is below a threshold (defined in configuration), put the Genome into the same Species than the representant.
 
-4. If not, repeat Step 2 with next representant of the representant array.
+    4. If not, repeat Step 2 with next representant of the representant array.
 
-5. At the end, if no existing species has been assigned to the Genome, create a new Species for that Genome.
+    5. At the end, if no existing species has been assigned to the Genome, create a new Species for that Genome.
 ```
 
 ### Fitness evaluation
@@ -197,7 +197,7 @@ species are already clustered by compatibility using the threshold δ t._
 Notice here that the sh function has to be calculated for each Genome with other genomes of the entire population. In other words, the existing species are not explicitly taken into account during the fitness evaluation. This is because species vhave been build on random representants. This implies the adjusted fitness cannot be computed independently for each Genome. The whole population at a given iteration step is taken as parameter to the evaluation function. Taken that into account, the steps for the adjusted fitness evaluation of a given population of Genomes would be close to:
 
 ```
-Method: Evaluating adjusted fitness of a Genome.
+Function: Evaluating adjusted fitness of a Genome.
 Parameters: A collection of Species and the Genome to evaluate.
 Returns: The adjusted fitness
 Steps: (Equation 2)
@@ -215,7 +215,7 @@ Selecting a population consist in removing the worse performers. The amount of i
 > replaced by the offspring of the remaining organisms in each species.
 
 ```
-Method: Make a selection in the population
+Function: Make a selection in the population
 Parameters: A collection of Phenotypes
 Returns : A truncated collection of Phenotypes
 Steps:
@@ -238,7 +238,7 @@ At the end of the process, the initial population is reduced and each species in
 Object: Configuration
 Properties:
 
-    - The percentage of best performing members allowed to reproduce with crossovers. - A fitness threshold to evaluate wether or not two Genomes equally perform or not.
+    - The percentage of best performing members allowed to reproduce with crossovers.
 
 ```
 
@@ -266,7 +266,7 @@ Properties:
 ```
 
 ```
-Method: Make mutations over a population
+Function: Make mutations over a population
 Parameters: A Collection of Species
 Returns : The same Collection with eventually different configuration and new members
 Steps :
@@ -287,7 +287,7 @@ The different kind of mutation are describe in the following.
 ![Connexion mutaion in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/structural-mutation-1.png?raw=true, "Connexion mutaion in neat algorithm")
 
 ```
-Method: Add ConnexionGene mutation
+Function: Add ConnexionGene mutation
 Parameters: A Genome
 Returns : The same Genome with a new ConnexionGene
 Steps :
@@ -314,7 +314,7 @@ Steps :
 
 ```
 
-Method: Add NodeGene mutation
+Function: Add NodeGene mutation
 Parameters: A Genome
 Returns : The same Genome with a new NodeGene and two new ConnexionGenes
 Steps :
@@ -360,7 +360,7 @@ a preset chance that an inherited gene is disabled if it is disabled in either p
 
 ```
 
-Method: Crossovers within a Species
+Function: Crossovers within a Species
 Parameters: A Species and the number of new members to add.
 Returns : The same Species with additionnal members
 Steps :
@@ -377,7 +377,7 @@ Steps :
 
 ```
 
-Method: Crossover two Genes
+Function: Crossover two Genes
 Parameters: Two Genomes within the same Species
 Returns : A new Genome
 Steps : 1. Create a new Genome (Gn) with no Gene.
@@ -394,10 +394,12 @@ Steps : 1. Create a new Genome (Gn) with no Gene.
 This brings two new configuration parameters:
 
 ```
-
 Object: Configuration
-Properties: - The percentage of best performing members allowed to reproduce with crossovers - A fitness threshold
+Properties:
 
+    - The percentage of best performing members allowed to reproduce with crossovers.
+
+    - A fitness threshold to evaluate wether or not two Genomes equally perform or not.
 ```
 
 ### Putting all together
