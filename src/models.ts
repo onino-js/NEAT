@@ -1,3 +1,4 @@
+import { AxonGene, NeuronGene } from "./Genome";
 import { Phenotype } from "./Phenotype";
 
 export enum NeuronType {
@@ -32,3 +33,5 @@ export interface IdistanceConfiguration {
 export interface IfitnessFunction {
   (input: Phenotype): number; // User provided function to evaluate the fitness of a given phenotype.
 }
+
+export type IGene = NeuronGene | AxonGene;

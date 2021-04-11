@@ -1,18 +1,43 @@
 import { Phenotype, Neuron, Axon } from "./Phenotype";
 import { Genome } from "./Genome";
-import { INeatConfiguration, NeuronType } from "./models";
+import {
+  IdistanceConfiguration,
+  INeatConfiguration,
+  NeuronType,
+} from "./models";
 import { Neat } from "./Neat";
 import { Species } from "./Genome";
-import { helpers } from "./utils/helpers";
 
-/** Class containing utiliity functions for the NEAT algorithm */
+/**
+ * Class containing utiliity functions for the NEAT algorithm .
+ * [See more information about implementation](https://github.com/onino-js/NEAT/blob/main/documentation/neat-implementation.md)
+ */
 class NeatUtils {
+  /**
+   * Check the configuration object provided by user. Throw error if any.
+   *
+   * @param {Partial<INeatConfiguration>} configuration the configuration object.
+   */
   static checkConfiguration(configuration: Partial<INeatConfiguration>) {
     if (!NeatUtils.utils.isPositiveInteger(configuration.maxEpoch)) {
       throw new Error(
         "Error in configuration - maxEpoch should be a positive integer"
       );
     }
+  }
+
+  /**
+   * Check a shape object. Throw error if any.
+   *
+   * @param {number[]} shape the configuration object.
+   */
+  static checkShape(shape: number[]) {
+    shape.forEach((layer, layerIndex) => {
+      if (layer <= 0 || !Number.isInteger(layer))
+        throw new Error(
+          "Error calling generatePerceptron: parameter should be an array of positive integer"
+        );
+    });
   }
 
   static utils = {
@@ -51,13 +76,56 @@ class NeatUtils {
     NeatUtils.mutatePopulation(neat);
   }
 
-  static checkShape(shape: number[]) {
-    shape.forEach((layer, layerIndex) => {
-      if (layer <= 0 || !Number.isInteger(layer))
-        throw new Error(
-          "Error calling generatePerceptron: parameter should be an array of positive integer"
-        );
-    });
+  /**
+   * Compute the distance between two Genomes using [equation 2](https://github.com/onino-js/NEAT/blob/main/documentation/neat-implementation.md)
+   *
+   * @param {[Genome, Genome]} genomes An array of exactly two Genomes.
+   * @param {IdistanceConfiguration} distanceConfiguration A distance configuration object.
+   * @return {number} the distance between the two Genomes.
+   */
+  static computeDistance({
+    genomes,
+    distanceConfiguration,
+  }: {
+    genomes: [Genome, Genome];
+    distanceConfiguration: IdistanceConfiguration;
+  }): number {
+    const { c1, c2, c3 } = distanceConfiguration;
+    const E = NeatUtils.computeNumberOfExcessGenes(genomes);
+    const D = NeatUtils.computeNumberOfDisjointGenes(genomes);
+    const W = NeatUtils.computeAverageWieghtDifference(genomes);
+    const N = Math.max(genomes[0].genes.length, genomes[1].genes.length);
+    return (c1 * E) / N + (c2 * D) / N + c3 * W;
+  }
+
+  /**
+   * Compute the number of disjoint genes between two genomes.
+   *
+   * @param {[Genome, Genome]} genomes An array of exactly two Genomes.
+   * @return {number} the number of disjoint genes.
+   */
+  static computeNumberOfDisjointGenes(genomes: [Genome, Genome]): number {
+    return 0;
+  }
+
+  /**
+   * Compute the number of excess genes between two genomes.
+   *
+   * @param {[Genome, Genome]} genomes An array of exactly two Genomes.
+   * @return {number} the number of disjoint genes.
+   */
+  static computeNumberOfExcessGenes(genomes: [Genome, Genome]): number {
+    return 0;
+  }
+
+  /**
+   * Compute the average weight difference between two genomes.
+   *
+   * @param {[Genome, Genome]} genomes An array of exactly two Genomes.
+   * @return {number} the number of disjoint genes.
+   */
+  static computeAverageWieghtDifference(genomes: [Genome, Genome]): number {
+    return 0;
   }
 
   private getAllGenomes(neat: Neat) {}
@@ -97,27 +165,6 @@ class NeatUtils {
         axons.push(axon);
       });
     });
-
-    // layers.forEach((layer, layerIndex) => {
-    //   // if last layer then return (no connexion)
-    //   if (layerIndex === layers.length - 1) return;
-    //   // Retreive neurons of concerned layer
-    //   const currentLayerNeurons = neurons.filter((n, i) => {
-    //     return n.layerIndex === layerIndex;
-    //   });
-
-    //   // Retreive neurons of next layer
-    //   const nextLayerNeurons = neurons.filter((n, i) => {
-    //     return n.layerIndex === layerIndex + 1;
-    //   });
-    //   // For each neuron of current, create connection to all neurons of next layer
-    //   currentLayerNeurons.forEach((input) => {
-    //     nextLayerNeurons.forEach((output) => {
-    //       const axon = new Axon({ input, output });
-    //       axons.push(axon);
-    //     });
-    //   });
-    // });
     return new Phenotype({ neurons, axons, layers });
   };
 }

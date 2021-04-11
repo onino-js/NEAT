@@ -187,7 +187,7 @@ As a specificity of the NEAT algorithm, we should perforom a speciation of the p
 ```
 Function: Speciate a new Genome within the population
 Parameters: A collection of Species and the Genome to speciate
-Returns: The species the Genome belongs to
+Returns: The collection of Species with eventually a new member
 Steps:
 
     1. For Each species of the population, pick a random representant and build a representant array

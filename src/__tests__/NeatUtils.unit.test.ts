@@ -58,4 +58,5 @@ describe("class NeatUtils", () => {
       expect(phenotype.axons).toHaveLength(6);
     });
   });
+  describe("computeNumberOfDisjointGenes", () => {});
 });

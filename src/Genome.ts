@@ -1,7 +1,10 @@
-import { NeuronType } from "./models";
+import { IGene, NeuronType } from "./models";
 import { Identifiable } from "./utils/Identifiable";
 
-/** Class representing a genome manipulated by the neat algorithm */
+/**
+ * Class representing a genome.
+ * @extends Identifiable
+ */
 class Genome extends Identifiable {
   public neuronGenes: NeuronGene[] = [];
   public axonGenes: AxonGene[] = [];
@@ -22,12 +25,20 @@ class Genome extends Identifiable {
   private addNeuronGene(neuronGene: NeuronGene) {
     this.neuronGenes.push(neuronGene);
   }
+
+  get genes(): IGene[] {
+    return (this.neuronGenes as IGene[]).concat(this.axonGenes as IGene[]);
+  }
 }
 
 interface INeuronGeneParams {
   type?: NeuronType;
 }
 
+/**
+ * Class representing a NeuronGene.
+ * @extends Identifiable
+ */
 class NeuronGene {
   public type: NeuronType;
   constructor(type: NeuronType) {
@@ -35,6 +46,10 @@ class NeuronGene {
   }
 }
 
+/**
+ * Class representing a AxonGene.
+ * @extends Identifiable
+ */
 class AxonGene {
   public readonly id: string;
   public weight: number;
@@ -44,7 +59,11 @@ class AxonGene {
   public innovation: number;
 }
 
-class Species {
+/**
+ * Class representing a Species.
+ * @extends Identifiable
+ */
+class Species extends Identifiable {
   public genomes: Genome[] = [];
   public addGenome(genome: Genome) {
     this.genomes.push(genome);
