@@ -1,12 +1,12 @@
 # NEAT implementation
 
-The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of high level computing steps). The description is language agnostic so that a developper would easily reproduce a NEAT in any programming language. All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf).
+The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of high level computing steps). The description is language agnostic so that a developper would easily reproduce a NEAT in any programming language. All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf).
 
 ### Introduction
 
-A NEAT algorithm is a variation of more common Genetic algorithm which optimize neural networks. Before going further, be sure to know and understand [the specific Genetic aglgorithms and NEAT terms](https://github.com/onino-js/NEAT/blob/main/documentation/net-glossary.md), and also [the basic implementation of a genetic algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md).
+A NEAT algorithm is a variation a Genetic algorithm which optimize neural networks. Before going further, you should know [the specific terms of Genetic aglgorithms and NEAT](https://github.com/onino-js/NEAT/blob/main/documentation/neat-glossary.md), and the [the basic implementation of a genetic algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md).
 
-Moreover, to understand the motivations behind the NEAT algorithm and the choices made for its implementation, I suggest you to read the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md) before going forward.
+Moreover, to understand the motivations behind the NEAT algorithm and the choices made for its implementation, you may want to read the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md) before going forward.
 
 The algorithm we describe here will be composed of objects, collections of objects, and functions tha manipulates those objects and collections.The aim of the exercise is to define the properties of each object and all the functions with high level computing steps. In the rest of the document, we will use the following terms to designate the objects of different types:
 
@@ -21,44 +21,50 @@ The algorithm we describe here will be composed of objects, collections of objec
 - Configuration: An object containing the data needed to run a simulation
 - Functions: An object representing all functions needed in the NEAT algorithm
 
-Here we make a distinction between Genome objects and Phenotype objects (or Individual, or Network). A Genome is the encoded representation of a Phenotype, this encoded version can be manipulated by a NEAT algorithm to produce new populations. A Phenotype is an indivial of the population. In the context of a NEAT, an individual is a neural network designed to solve specific problems. A Genome can be mutated or crossed with other genomes but not a phenotype. A phenotype can produce results with given inputs but not a genome. Thus, even if they are closely related and often merged into a single entity, use different objects to represent a Genome (or Genotype) and a Phenotype (or Network). The same goes for a Node (or Neuron) and its corresponding Node gene (or neuron gene) and a Connexion (or Axon) and its corresponding Connexion gene (or Axon gene).
+Here we make a distinction between Genome objects and Phenotype objects (or Individual, or Network). A Genome is the encoded representation of a Phenotype, this encoded version can be manipulated by a NEAT algorithm to produce new populations. A Phenotype is an indivial of the population. In the context of a NEAT, an individual is a neural network designed to solve a specific problem. A Genome can be mutated or crossed with other genomes but not a phenotype. A phenotype can produce results with given inputs but not a genome. Thus, even if they are closely related and often merged into a single entity, we prefer to use different objects to represent a Genome (or Genotype) and a Phenotype (or Network). The same goes for a Node (or Neuron) and its corresponding Node gene (or neuron gene) and a Connexion (or Axon) and its corresponding Connexion gene (or Axon gene).
 
-The exact architecture of the programm is not discussed here. In the source code proposed in this repository, most of the methods to perform manipulations over genes and phonotypes are moved into a static class called NeatUtils and writted as pure functions with low level of implication(1). The remainings classes only keep the minimum amount of informations. The aim is to provide users the flexibility to replace any component of the program and easily build variations of the algorithm. [More informations about customiation here](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md).
+The exact architecture of the programm is not discussed here. In the source code proposed in this repository, most of the functions to perform manipulations over genes and phonotypes are moved into a static class called NeatUtils and writted as pure functions with low level of implication. The classes reprensenting objects only keep the minimum amount of informations. The aim is to provide users the flexibility to replace any component of the program and easily build variations of the algorithm. [More informations about customization here](https://github.com/onino-js/NEAT/blob/main/documentation/3-customization.md).
 
-The first step to develop a genetic algorithm is to define the encoding method for the Genome, and thus the properties of the Genome object.
+Let's start the journey. The first step to develop a genetic algorithm is to define the encoding method for the Genome, and thus the properties of the Genome object.
 
 ### Encoding the genome
 
-The Encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md). An example is given Figure 1. Here are the authors prescriptions:
+The encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md). An example is given Figure 1. Here are the authors prescriptions:
 
-> Genomes are linear representations of network connectivity (Figure 2). Each genome includes a list of connection
+> Genomes are linear representations of network connectivity (Figure 1). Each genome includes a list of connection
 > genes, each of which refers to two node genes being connected.
-
-```
-Object: Genome
-properties:
-    - One collection of type "node gene"
-    - One collection of type "connexion gene"
-```
-
-Use of indexed arrays for collections insure the linear representation.
-
 > Node genes provide a list of inputs, hidden nodes, and outputs that can be connected. Each connection gene
 > specifies the in-node, the out-node, the weight of the connection, whether or not the
 > connection gene is expressed (an enable bit), and an innovation number, which allows
 > finding corresponding genes.
 
 ```
-Object: ConnexionGene
+Object: Genome
 properties:
-    - One identificator of a node gene for its input (can be an id or the node gene object itself)
-    - One identificator of a node gene for its input (can be an id or the node gene object itself)
-    - A Number representing the weight of the connexion
-    - A boolean representing wether or not the connexion is activated
-    - A Number representing the innovation number which will be used to perform crossovers between individuals of the same species.
+    - One collection of type "NodeGene"
+    - One collection of type "ConnexionGene"
 ```
 
-Also we need to define a function that tells us wether or not two Nodes can be connected:
+Using indexed arrays for collections insure the linear representation.
+
+```
+Object: ConnexionGene
+properties:
+    - An input NodeGene
+    - An output NodeGene
+    - A Number representing the weight of the connexion
+    - A boolean representing wether or not the connexion is activated
+    - A Number representing the innovation number.
+```
+
+```
+Object: NodeGene
+properties:
+    - The type of node (input, output or hidden)
+    - A Number representing the innovation number.
+```
+
+The innovation number will be used to perform crossovers between individuals of the same species. Also we need to define a function that tells us wether or not two Nodes can be connected:
 
 ```
 Function: Can Nodes connect to each other ?
@@ -74,7 +80,31 @@ node, and seven connection definitions, one of which is recurrent. The second ge
 disabled, so the connection that it specifies (between nodes 2 and 4) is not expressed in
 the phenotype._
 
-An object of type "node gene" ....
+The correponding members (Phenotype, Node and Connexion) can also be defined:
+
+```
+Object: Phenotype
+properties:
+    - A Genome
+    - The current fitness
+    - An input object containing input values
+    - An output object containing output values
+```
+
+```
+Object: Node
+properties:
+    - A NodeGene
+    - The current output value
+```
+
+```
+Object: Connexion
+properties:
+    - A ConnexionGene
+    - An input Node
+    - An output Node
+```
 
 ### Tracking topological changes
 
