@@ -23,21 +23,23 @@ The algorithm we describe here will be composed of objects, collections of objec
 
 Here we make a distinction between Genome objects and Phenotype objects (or Individual, or Network). A Genome is the encoded representation of a Phenotype, this encoded version can be manipulated by a NEAT algorithm to produce new populations. A Phenotype is an indivial of the population. In the context of a NEAT, an individual is a neural network designed to solve specific problems. A Genome can be mutated or crossed with other genomes but not a phenotype. A phenotype can produce results with given inputs but not a genome. Thus, even if they are closely related and often merged into a single entity, use different objects to represent a Genome (or Genotype) and a Phenotype (or Network). The same goes for a Node (or Neuron) and its corresponding Node gene (or neuron gene) and a Connexion (or Axon) and its corresponding Connexion gene (or Axon gene).
 
-The exact architecture of the programm is not discussed here. In the source code proposed in this repo, most of the methods to perform manipulations over genes and phonotypes are moved into a static class called NeatUtils. The remainings classes only keep the minimum amount of informations. The aim is to provide users the flexibility to replace any component of the program and easily build variations of the algorithm. [More informations about customiation here](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md).
+The exact architecture of the programm is not discussed here. In the source code proposed in this repository, most of the methods to perform manipulations over genes and phonotypes are moved into a static class called NeatUtils and writted as pure functions with low level of implication(1). The remainings classes only keep the minimum amount of informations. The aim is to provide users the flexibility to replace any component of the program and easily build variations of the algorithm. [More informations about customiation here](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md).
 
 The first step to develop a genetic algorithm is to define the encoding method for the Genome, and thus the properties of the Genome object.
 
 ### Encoding the genome
 
-The Encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md). Here are the authors prescriptions:
+The Encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md). An example is given Figure 1. Here are the authors prescriptions:
 
 > Genomes are linear representations of network connectivity (Figure 2). Each genome includes a list of connection
 > genes, each of which refers to two node genes being connected.
 
-An object of type Genome has at least two properties:
-
+```
+Object: Genome
+properties:
 - One collection of type "node gene"
 - One collection of type "connexion gene"
+```
 
 Use of indexed arrays for collections insure the linear representation.
 
@@ -46,17 +48,27 @@ Use of indexed arrays for collections insure the linear representation.
 > connection gene is expressed (an enable bit), and an innovation number, which allows
 > finding corresponding genes.
 
-An object of type ConnexionGene has at least four properties:
-
+```
+Object: ConnexionGene
+properties:
 - One identificator of a node gene for its input (can be an id or the node gene object itself)
 - One identificator of a node gene for its input (can be an id or the node gene object itself)
 - A Number representing the weight of the connexion
 - A boolean representing wether or not the connexion is activated
 - A Number representing the innovation number which will be used to perform crossovers between individuals of the same species.
+```
+
+Also we need to define a function that tells us wether or not two Nodes can be connected:
+
+```
+Method: Can Nodes connect to each other ?
+Parameters: Node 1, Node 2
+returns: yes or not
+```
 
 ![Encoding the genome in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/genotype-encoding.png?raw=true, "Encoding the genome in neat algorithm")
 
-_Figure 2: A genotype to phenotype mapping example. A genotype is depicted that
+_Figure 1: A genotype to phenotype mapping example. A genotype is depicted that
 produces the shown phenotype. There are 3 input nodes, one hidden, and one output
 node, and seven connection definitions, one of which is recurrent. The second gene is
 disabled, so the connection that it specifies (between nodes 2 and 4) is not expressed in
@@ -88,6 +100,9 @@ In the Neat process, those instructions take place during the creation of new po
 
 ```
 Method: Track a structural mutation of a Genome
+Parameters: The new Gene to be created and a collection of all existing Genes.
+Returns: The max innovation number and the new Gene with an updtade innovation number property.
+Steps:
 
 1. Get the max innovation number from all genes of all Genomes of the population.
 
@@ -143,6 +158,9 @@ As a specificity of the NEAT algorithm, we should perforom a speciation of the p
 
 ```
 Method: Speciate a new Genome within the population
+Parameters: A collection of Species and the Genome to speciate
+Returns: The species the Genome belongs to
+Steps:
 
 1. For Each species of the population, pick a random representant and build a representant array
 
@@ -179,32 +197,51 @@ species are already clustered by compatibility using the threshold δ t._
 Notice here that the sh function has to be calculated for each Genome with other genomes of the entire population. In other words, the existing species are not explicitly taken into account during the fitness evaluation. This is because species vhave been build on random representants. This implies the adjusted fitness cannot be computed independently for each Genome. The whole population at a given iteration step is taken as parameter to the evaluation function. Taken that into account, the steps for the adjusted fitness evaluation of a given population of Genomes would be close to:
 
 ```
-Method: Evaluating adjusted fitness of a population of Genomes
-
-1. For each genome, build the corresponding Phenotype
-
-2. For each Phenotype, evaluate and update the fitness using the user provided function
-
-3. For each Phenotype, evaluate the adjusted fitness using the equation 2
-
+Method: Evaluating adjusted fitness a Genome.
+Parameters: A collection of Species and the Genome to evaluate.
+Returns: The adjusted fitness
+Steps: (Equation 2)
 ```
 
-The adjusted fitnesses will be used to make a selection over the population.
+This method needs to be provided with the whole population sorted ny species in order to evaluate Equation 2. The adjusted fitnesses will be used to make a selection over the population.
 
 ### Population selection
 
-Selecting a population consist in removing the worse performers. The amount of individuals to be removed is defined in the Configuration.
+Selecting a population consist in removing the worse performers. The amount of individuals to be removed is defined in the Configuration as a total percentage of surviving individuals at each step.
 
 > Every species is assigned a potentially different number of offspring in proportion to the sum of ad-
 > justed fitnesses fi 0 of its member organisms. Species then reproduce by first eliminating
 > the lowest performing members from the population. The entire population is then
 > replaced by the offspring of the remaining organisms in each species.
 
+```
+Method: Make a selection in the population
+Parameters: A collection of Phenotypes
+Returns : A troncated collection of Phenotypes
+Steps:
+
+1. Get the population as a collection of Species
+
+2. Compute the number of total survivors Nt
+
+(For each Species)
+3. compute the average adjusted fitness
+
+4. compute the number (N) of offsprings for the next generation
+
+5. Remove the excess of Phenotypes using the adjusted fitness as discriminant
+```
+
+At the end of the process, the initial population is reduced and each species in the population has an exact number of new individuals to be created during the mutation/crossover process.
+
 ### Mutation
+
+A spcificity of the Neat algorithm, is that structural mutations will make the genomes gradually
+get larger. The process is however the same as in a traditional GA. We just have to take different kinds of mutations with different mutation rates.
 
 > Mutation in NEAT can change both connection weights and network structures.
 > Connection weights mutate as in any NE system, with each connection either per-
-> turbed or not at each generation. Structural mutations occur in two ways (Figure 3).
+> turbed or not at each generation. Structural mutations occur in two ways (Figure 2).
 > Each mutation expands the size of the genome by adding gene(s). In the add connection
 > mutation, a single new connection gene with a random weight is added connecting
 > two previously unconnected nodes. In the add node mutation, an existing connection is
@@ -213,25 +250,90 @@ Selecting a population consist in removing the worse performers. The amount of i
 > leading into the new node receives a weight of 1, and the new connection leading out
 > receives the same weight as the old connection.
 
+```
+Object: Configuration
+- Mutation rate for adding a NodeGene
+- Mutation rate for adding a ConnexionGene
+- Mutation rate for changing weigth
+```
+
+```
+Method: Make mutations over a population
+Parameters: A Collection of Species
+Returns : The same Collection with eventually different configuration and new members
+Steps :
+
+(For each Species in the population)
+(For each kind member in the Species)
+(For each kind of mutation)
+1. Eventually perform a mutation according to mutation rate
+```
+
+The different kind of mutation are describe in the following.
+
 #### Connexion mutation
 
-> The top number in each genome is the innovation number of
-> that gene. The innovation numbers are historical markers that identify the original his-
-> torical ancestor of each gene. New genes are assigned new increasingly higher num-
-> bers. In adding a connection, a single new connection gene is added to the end of the
+> New genes are assigned new increasingly higher numbers. In adding a connection, a single new connection gene is added to the end of the
 > genome and given the next available innovation number.
 
 ![Connexion mutaion in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/structural-mutation-1.png?raw=true, "Connexion mutaion in neat algorithm")
 
+```
+Method: Add ConnexionGene mutation
+Parameters: A Genome
+Returns : The same Genome with a new ConnexionGene
+Steps :
+
+1. Get all NodeGenes of the Genome
+
+2. Build a new ConnexionGene Ncg with two randomly chosed NodeGene
+
+3. Check if the ConnexionGene is recurrent
+
+4. If not, add the new ConnexionGene to the Genome
+
+5. Perform histirical tracking.
+```
+
 #### Node mutation
 
-> In adding a new node, the connection gene being split is disabled, and two new connection genes are added to the
-> end the genome. The new node is between the two new connections. A new node gene
-> (not depicted) representing this new node is added to the genome as well.
+> In the add node mutation, an existing connection is split and the new node placed where the old connection used to be. The old connection
+> is disabled and two new connections are added to the genome. The new connection
+> leading into the new node receives a weight of 1, and the new connection leading out
+> receives the same weight as the old connection. This method of adding nodes was chosen in order to minimize the initial effect of the mutation.
 
 ![Node mutaion in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/structural-mutation-2.png?raw=true, "Node mutaion in neat algorithm")
 
+```
+Method: Add NodeGene mutation
+Parameters: A Genome
+Returns : The same Genome with a new NodeGene and two new ConnexionGenes
+Steps :
+
+1. Pick randomly one ConnexionGene CG of the Genome having a weight W.
+
+2. Get the input (I) and outout (O) corresponding NodeGenes.
+
+3. Create a new NodeGene Nn.
+
+4. Create a new ConnexionGene with wieght 1, input I and output Nn.
+
+4. Create a new ConnexionGene with wieght W, input Nn and output O.
+
+5. For each newlt create Gene, perform the historical tracking.
+```
+
 ### Crossover
+
+Crossover is
+
+> If the maximum fitness of a species did not improve in 15
+> generations, the networks in that species were not allowed
+> to reproduce. Otherwise, the top <@2@A (i.e. the elite) of
+> each species reproduced by random mate selection within
+> the elite. In addition, the champion of each species with
+> more than five networks was copied into the next generation unchanged and each elite individual had a 0.1% chance
+> to mate with an elite individual from another species
 
 ![Crossover in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/crossover.png?raw=true, "Crossover in neat algorithm")
 
@@ -245,5 +347,24 @@ genes (those that do not match in the end) are inherited from the more fit paren
 this case, equal fitnesses are assumed, so the disjoint and excess genes are also inherited
 randomly. The disabled genes may become enabled again in future generations: there’s
 a preset chance that an inherited gene is disabled if it is disabled in either parent._
+
+```
+Method: Crossovers within a Species
+Parameters: A Species and the number of new members to add.
+Returns : The same Species with additionnal members
+Steps :
+
+TODO
+
+```
+
+```
+Method: Crossover two Genes
+Parameters: Two Genes of the same type (Node or Connexion)
+Returns : A new Gene
+Steps :
+
+TODO
+```
 
 ### Putting all together

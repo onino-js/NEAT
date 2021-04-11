@@ -6,67 +6,41 @@ NeuroEvolution of Augmenting Topologies (NEAT) is a genetic algorithm (GA) for t
 This library is a typescript implementation of the Neat algorithm provided with a vislualiser tool to see in real time how the network is evolving.
 
 More informations about NEAT are available in [the original paper](https://www.cs.utexas.edu/users/ai-lab/pubs/stanley.gecco02_1.pdf).
+http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf.
+
+If you are not familiar with the concept of NEAT and genetic algorithm, you are invited to follow those steps before:
+
+1. [Learn basics about genetic algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md).
+2. [Learn basics about NEAT](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md).
+3. [See the exact original implementation of NEAT](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md).
 
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 # Quick start
 
-# Documentation
-
-### Contents
-
-- [Getting Started](#getting-started)
-- [Contributing](#contributing)
-- [License](#license)
-
-### Getting Started
-
-#### Option 1 (Using a bundler)
-
-Use the following command in order to download the library:
+## Installation
 
 ```
 npm install @onino/neat
 ```
 
-or
+## Basic use
 
-```
-yarn add @onino/neat
-```
+## The Xor example
 
-NPM will download the library and build the JavaScript files automatically inside the `./build` folder without needing extra work.
-To use the library inside a Node.js environment you need the following `require()` command.
+## Flappy bird example
 
-```js
-const NEAT = require("@onino/neat");
-```
+## Use with the visualizer tool
 
-or ()
+# Documentation
 
-```js
-import { NEAT } from "@onino/neat";
-```
+### Contents
 
-You can later use the constructor as such:
+- [Getting Started](https://github.com/onino-js/NEAT/blob/main/documentation/1-getting-started.md)
+- [Contributing](https://github.com/onino-js/NEAT/blob/main/documentation/1-getting-started.md)
+- [License](https://github.com/onino-js/NEAT/blob/main/documentation/1-getting-started.md)
 
-```js
-const phenotype = Phenotype.create([1, 3, 3, 2]);
-const visualizer = new Visualizer("canvas", { phenotype });
-visualizer.draw();
-```
-
-#### Option 2 (Browser)
-
-Download the library :
-
-NPM will download the library and build the JavaScript files automatically inside the `./build` folder.
-
-You can then include the `NEATbundle_es.js` file in your HTML file as such:
-
-```html
-<script src="./build/NEATbundle_es.js"></script>
-```
+### 1. [Getting Started](#getting-started)
 
 ### Run exemples
 

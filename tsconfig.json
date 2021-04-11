@@ -8,5 +8,10 @@
     "sourceMap": true,
     "declaration": true
   },
+  "typedocOptions": {
+    "entryPoints": ["src/Neat.ts"],
+    "out": "./documentation/api-reference",
+    "exclude": ["./src/visualizer", "./src/Phenotype.ts"]
+  },
   "include": ["./src/**/*"]
 }

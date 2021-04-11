@@ -6,8 +6,9 @@
   "scripts": {
     "build": "tsc",
     "start:visualizer": "parcel ./examples/visualizer/index.html --out-dir ./examples/build/visualizer",
-    "build:visualizer": "parcel build ./examples/visualizer/index.html --out-dir ./examples/build/visualizer --public-url ./",
     "start:flappy-bird": "parcel ./examples/flappybird/index.html --out-dir ./examples/build/flappybird",
+    "build:visualizer": "parcel build ./examples/visualizer/index.html --out-dir ./examples/build/visualizer --public-url ./",
+    "build:documentation": "typedoc --entryPoints ./src/Neat.ts --excludeExternals --includes ./src",
     "test": "jest --coverage"
   },
   "keywords": [],
@@ -24,6 +25,7 @@
     "babel-jest": "^26.6.3",
     "jest": "^26.6.3",
     "parcel-bundler": "^1.12.5",
+    "typedoc": "^0.20.35",
     "typescript": "^4.2.3"
   }
 }

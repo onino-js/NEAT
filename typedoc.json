@@ -1,0 +1,5 @@
+{
+  "entryPoints": ["src/Neat.ts"],
+  "out": "./documentation/api-reference",
+  "exclude": ["./src/visualizer", "./src/Phenotype.ts"]
+}
