@@ -4,6 +4,7 @@ import { AxonGene, Genome, NeuronGene } from "./Genome";
 import {
   IdistanceConfiguration,
   IfitnessFunction,
+  IGene,
   INeatConfiguration,
   NeuronType,
 } from "./models";
@@ -134,9 +135,143 @@ class NeatUtils {
     return newSpecies;
   }
 
-  static crossoverPopulation(neat: Neat) {}
+  static mutatePopulation(neat: Neat) {
+    const {
+      addAxonGene,
+      addNeuronGene,
+      changeAxonGeneWeight,
+    } = neat.configuration.mutationRates;
+    neat.species.forEach((s) => {
+      s.forEach((g) => {
+        NeatUtils.randomDo(addAxonGene) && NeatUtils.addAxonMutation(g, s);
+        NeatUtils.randomDo(addNeuronGene) && NeatUtils.addNeuronMutation(g, s);
+        NeatUtils.randomDo(changeAxonGeneWeight) &&
+          NeatUtils.changeWeightMutation(g);
+      });
+    });
+  }
 
-  static mutatePopulation(neat: Neat) {}
+  /**
+   * Mutate a genome with a "add neuron mutation"
+   * We must provide the array of genomes of the same species to make innovation tracking.
+   *
+   * @param {Genome} genome The genome to mutate.
+   * @param {Genome[]} genomes TAn array of genomes of the same species.
+   * @return {Genome[]} An array of species.
+   */
+  static addNeuronMutation(genome: Genome, genomes: Genome[]) {
+    // Get all axonGenes in the concerned species
+    const allAxonGenes = genomes.map((g) => g.axonGenes).flat();
+    // Pick randomly an existing axon gene.
+    const axonToMutate = NeatUtils.randomPick(genome.axonGenes);
+    // Disable the connexion
+    axonToMutate.active = false;
+    // Get the innovation number for this mutation
+    const innovation = NeatUtils.getInnovationFromNeuronMutation(
+      axonToMutate,
+      allAxonGenes
+    );
+    // create a new neuron gene
+    const neuronGene = new NeuronGene({ innovation });
+    // create two new axons folowing instructions given in "#Node Mutation" of the documentation (neat-implementation)
+    const { input, output } = axonToMutate;
+    const axonGeneIn = new AxonGene({
+      weight: 1,
+      output: neuronGene,
+      input,
+      innovation,
+    });
+    const axonGeneOut = new AxonGene({
+      weight: axonToMutate.weight,
+      input: neuronGene,
+      output,
+      innovation,
+    });
+    // Push the new axonGenes into the genome
+    genome.axonGenes.push(axonGeneIn, axonGeneOut);
+    // Push the new neuronGene into the genome
+    genome.neuronGenes.push(neuronGene);
+    return genome;
+  }
+
+  /**
+   * Retuns the innovation number to apply for an "add node mutation".
+   *
+   * @param {AxonGene} axonGene The axonGene where the new neuron will be placed.
+   * @param {AxonGene[]} axonGenes an array of axonGenes of the same species.
+   * @return {number} The innovation number.
+   */
+  static getInnovationFromNeuronMutation(
+    axonGene: AxonGene,
+    axonGenes: AxonGene[]
+  ): number {
+    // Get max innovation number
+    const maxInnovation = NeatUtils.getMaxInnovation(axonGenes);
+    // get back input and output neuron genes
+    const { input, output } = axonGene;
+    // Get all axons that have the same input and output
+    const sameInputAxonGenes = axonGenes.filter((ag) => ag.input === input);
+    const sameOutputAxonGenes = axonGenes.filter((ag) => ag.output === output);
+    let innovation = maxInnovation + 1;
+    // Check if the structural innovation already exists
+    sameInputAxonGenes.forEach((iag) => {
+      const samePair = sameOutputAxonGenes.find(
+        (oag) => oag.input === iag.output
+      );
+      samePair !== undefined && (innovation = iag.innovation);
+    });
+    return innovation;
+  }
+
+  /**
+   * Mutate a genome with a "add connexion mutation"
+   * Wu must provide the array of genomes of the same species to make innovation tracking
+   * and to avoid recurrent mutations.
+   *
+   * @param {Genome} genome The genome to mutate.
+   * @param {Genome[]} genomes TAn array of genomes of the same species.
+   * @return {Genome} The mutated genome.
+   */
+  static addAxonMutation(genome: Genome, genomes: Genome[]) {
+    // Get all axonGenes in the concerned species
+    const allAxonGenes = genomes.map((g) => g.axonGenes).flat();
+    // Get the max innovation number of all genes
+    const maxInnovation = NeatUtils.getMaxInnovation(allAxonGenes);
+    // Create a new Axon by picking random NeuronGene
+    const input = NeatUtils.randomPick(genome.neuronGenes);
+    const output = NeatUtils.randomPick(genome.neuronGenes);
+    const axonGene = new AxonGene({ input, output, weight: Math.random() });
+    // Do nothing if the new connexion is recurrent
+    if (NeatUtils.isConnexionRecurent(axonGene, allAxonGenes)) {
+      return;
+    }
+    // Retreive the same innovation in the genes array
+    const innovationIndex =
+      allAxonGenes.find((g) => g.input === input && g.output === output)
+        ?.innovation || -1;
+    // if the same innovation exists, apply the same innovation number to the mutated gene
+    // if not, increment the max innovation number and apply it
+    axonGene.innovation =
+      innovationIndex !== -1 ? innovationIndex : maxInnovation + 1;
+    genome.axonGenes.push(axonGene);
+    // Retun the mutated genome
+    return genome;
+  }
+
+  /**
+   * Mutate a gene by picking randomly a gene and assign it a random weight
+   *
+   * @param {AxonGene} axonGene The connexion gene to test.
+   * @param {AxonGene[]} axonGenes An array of all axionGenes.
+   * @return {AxonGene} the mutated axon gene.
+   */
+  static changeWeightMutation(genome: Genome) {
+    const gene = NeatUtils.randomPick(genome.axonGenes);
+    gene.weight = Math.random();
+    return gene;
+  }
+
+  static crossoverPopulation(neat: Neat) {}
 
   static evaluateCriteria(neat: Neat): boolean {
     return true;
@@ -144,7 +279,7 @@ class NeatUtils {
 
   static createNewPopulation(neat: Neat) {
     // Step 3.1 - Select best performers based on fitness threshold
-    // NeatUtils.selectPopulation(neat);
+    NeatUtils.selectPopulation(neat);
     // Step 3.2 - Sort population into different species
     NeatUtils.speciatePopulation(neat);
     // Step 3.2 - Create new individuals with crossover manupulation
@@ -153,8 +288,46 @@ class NeatUtils {
     NeatUtils.mutatePopulation(neat);
   }
 
+  /******************************************************/
+  /********************UTILITIES*************************/
+  /******************************************************/
+
   static randomPick<T = any>(items: T[]) {
     return items[Math.floor(Math.random() * items.length)];
+  }
+
+  static randomDo<T = any>(rate): boolean {
+    return Math.random() > rate;
+  }
+
+  static getMaxInnovation(genes: AxonGene[]): number {
+    return genes.reduce(
+      (acc, cur) => (acc >= cur.innovation ? acc : cur.innovation),
+      0
+    );
+  }
+
+  /**
+   * Check wether or not a connexion is recurrent within a stack of connexion
+   *
+   * @param {AxonGene} axonGene The connexion gene to test.
+   * @param {AxonGene[]} axonGenes An array of all axionGenes.
+   * @return {boolean} true if the connexion is recurrent, else false.
+   */
+  static isConnexionRecurent(
+    axonGene: AxonGene,
+    axonGenes: AxonGene[]
+  ): boolean {
+    let input = axonGene.input;
+    let stack = [axonGene];
+    while (stack.length !== 0) {
+      let connection = stack.shift();
+      if (connection.output === input) return true;
+      stack.push(
+        ...axonGenes.filter((gene) => gene.input === connection.output)
+      );
+    }
+    return false;
   }
 
   /**

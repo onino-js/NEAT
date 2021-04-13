@@ -7,7 +7,6 @@ import { Phenotype } from "./Phenotype";
 /** Class representing the NEAT algorithm */
 export class Neat {
   public species: Genome[][]; // An array of array of Genomes representing the whole population. Each array representing a species
-  public population: Phenotype[];
   public maxInnovation: number = 0;
   public configuration: INeatConfiguration = INITIAL_CONFIGURATION; // A configuration object for the NEAT algorithm
   private epoch: number = 0; // The actual iteration index
@@ -23,14 +22,27 @@ export class Neat {
     Object.assign(this.configuration, _configuration);
   }
 
+  get population(): Phenotype[] {
+    return this.species.flat().map((g) => g.phenotype);
+  }
+
+  get genePopulation(): Genome[] {
+    return this.species.flat();
+  }
+
+  set population(items: Phenotype[]) {
+    this.population = items;
+  }
+
   /**
    * Run the NEAT algorithmn:
    */
   public run() {
     NeatUtils.initializePopulation(this);
+    // The population is initialized within one species
     while (!this.finished) {
-      // console.log(this.finished(), this.converged());
-      NeatUtils.evaluateFitness(this);
+      NeatUtils.computeFitness(this);
+      // Fitnesses and asjusted fitnesses are coputed
       NeatUtils.speciatePopulation(this);
       NeatUtils.selectPopulation(this);
       NeatUtils.mutatePopulation(this);

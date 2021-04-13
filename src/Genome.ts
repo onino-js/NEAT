@@ -65,12 +65,12 @@ class NeuronGene extends Identifiable {
 class AxonGene extends Identifiable {
   public weight: number;
   public active: boolean;
-  public input: number;
-  public output: number;
+  public input: NeuronGene;
+  public output: NeuronGene;
   public innovation: number;
   public axon: Axon;
 
-  constructor(opt: Partial<NeuronGene>) {
+  constructor(opt?: Partial<NeuronGene>) {
     super();
     Object.assign<AxonGene, Partial<AxonGene>>(this, opt);
   }
