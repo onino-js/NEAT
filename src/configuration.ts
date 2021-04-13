@@ -1,8 +1,11 @@
 import { INeatConfiguration } from "./models";
 
+// The default configuration object.
+// The settings are pretty the same than the original paper
 export const INITIAL_CONFIGURATION: INeatConfiguration = {
   populationSize: 200,
   survivalRate: 0.5,
+  reproducerRate: 0.4,
   mutationRates: {
     addNeuronGene: 0.05,
     addAxonGene: 0.05,

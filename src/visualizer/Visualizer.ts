@@ -89,7 +89,7 @@ export class Visualizer {
 
   private computeGrid() {
     let grid: Iposition[] = [];
-    this.phenotype.layers.forEach((layer, layerIndex) => {
+    this.phenotype.shape.forEach((layer, layerIndex) => {
       for (let rowIndex = 0; rowIndex < layer; rowIndex++) {
         grid.push({
           x: this.computeXPos(layerIndex),
@@ -102,13 +102,13 @@ export class Visualizer {
 
   private computeXPos(layerIndex: number): number {
     const w = this.styles.width - 2 * this.styles.padding[1];
-    const n = this.phenotype.layers.length;
+    const n = this.phenotype.shape.length;
     return this.styles.padding[1] + (layerIndex * w) / (n - 1);
   }
 
   private computeYPos(layerIndex: number, rowIndex: number): number {
     const h = this.styles.height - 2 * this.styles.padding[0];
-    const layers = this.phenotype.layers;
+    const layers = this.phenotype.shape;
     const n = layers[layerIndex] - 1;
     const rowGap = Math.min(this.styles.minGap, h / n);
     const additionalPadding = (h - rowGap * n) / 2;
