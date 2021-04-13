@@ -1,6 +1,6 @@
 # NEAT implementation
 
-The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of high level computing steps). The description is language agnostic so that a developper would easily reproduce a NEAT in any programming language. All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf).
+The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of high level computing steps). The description is language agnostic so that a developper would easily reproduce a NEAT in any programming language. All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf). Any suggestion to improve the readability through standardized pseudocode is very welcome (see the [contributing section](https://github.com/onino-js/NEAT/blob/main/documentation/3-contributing.md) ).
 
 ## Introduction
 
@@ -29,7 +29,7 @@ Let's start the journey. The first step to develop a genetic algorithm is to def
 
 ## Encoding the genome
 
-The encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md). An example is given Figure 1. Here are the authors prescriptions:
+The encoding has been choosen to solve the problems described in the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/net-presentation.md). It basically include a list of genes of two types: node genes and connexion genes. An example is given Figure 1. Here are the authors prescriptions:
 
 > Genomes are linear representations of network connectivity (Figure 1). Each genome includes a list of connection
 > genes, each of which refers to two node genes being connected.
@@ -46,11 +46,14 @@ node, and seven connection definitions, one of which is recurrent. The second ge
 disabled, so the connection that it specifies (between nodes 2 and 4) is not expressed in
 the phenotype._
 
+This leads to the following definitions :
+
 ```
 Object: Genome
 properties:
     - One collection of NodeGenes.
     - One collection of ConnexionGenes.
+    - The corresponding Phenoype object
 
 Object: ConnexionGene
 properties:
@@ -59,14 +62,16 @@ properties:
     - A Number representing the weight of the connexion.
     - A boolean representing wether or not the connexion is activated.
     - A Number representing the innovation number.
+    - The corresponding Connexion object
 
 Object: NodeGene
 properties:
     - The type of node (input, output or hidden).
     - A Number representing the innovation number.
+    - The corresponding Node object
 ```
 
-The correponding members (Phenotype, Node and Connexion) can also be defined:
+The correponding members (Phenotype, Node and Connexion) of those genetic objects can also be defined. Here make a circular one to one dependency with the pairs Genome/Phenotype, Node/NodeGene and Connexion/ConnexionGene.
 
 ```
 Object: Phenotype
@@ -75,6 +80,7 @@ properties:
     - The current fitness
     - An input object containing input values
     - An output object containing output values
+     - The corresponding Node object
 
 Object: Node
 properties:
@@ -119,26 +125,20 @@ The innovation appears in the Gene objects (ConnexionGene and NodeGene), it is a
 In the Neat process, those instructions take place during the creation of new population of Genomes. Eventually, some structural mutations will occur leading to new Genomes. The mutation process should be triggerd in the scope of a tracking process describe below:
 
 ```
-Function: Track a structural mutation of a Genome
-Parameters: The new Gene to be created and a collection of all existing Genes.
+Function: Track a structural innovation after a mutation
+Parameters: A list of new Genes created by connexion mutation (1 gene) or node mutation (3 genes) and the collection of all existing Genes.
 Returns: The max innovation number and the new Gene with an updtade innovation number property.
 Steps:
 
+    (For all Genes given as first parameter)
     1. Get the max innovation number from all genes of all Genomes of the population.
 
-    2. Create new Gene from the mutation (described here XXX).
+    3. Check if the mutation has alread been created (ie. gene with same properties exists).
 
-    3. Check if the mutation has alread been created.
+    4.
+    IF mutation exists, assign the same innovation number to the new genes
+    ELSE increment the max innovation number and assign it the the new genes
 
-    4. If mutation is new, increment the max innovation number.
-
-    5. Create the new Gene.
-
-    6. Assign this max innovation number to the new Gene innovation property.
-
-    7. Store the new Gene into an array to perform step 3 with next genes.
-
-    8. Reproduce process for each gene of the genome.
 ```
 
 This innovation number is also a central piece to perform speciation over the population as will see in next section.
@@ -146,8 +146,7 @@ This innovation number is also a central piece to perform speciation over the po
 ## Speciation
 
 A species is a collection of Genomes that are compatible. Two Genomes can produce a child through crossover only if they are compatible.
-Two Genomes compete over each other in the evolution process only if they are compatible.
-In other terms, if they are of the same species.
+Two Genomes compete over each other in the evolution process only if they are compatible. In other terms, if they are of the same species.
 So what exactly being compatible means ?
 
 > The idea is to divide the population into species such
@@ -174,7 +173,7 @@ Here the authors provide a functional definition of compatibility between two Ge
 > that species. This way, species do not overlap. 1 If g is not compatible with any existing
 > species, a new species is created with g as its representative.
 
-As a specificity of the NEAT algorithm, we should perforom a speciation of the population before going through the steps of mutations and crossovers. Note that the Neat object should be initialized with one species containing all the population so that a first mutation step can be performed.
+Now we have the tools to perform a speciation of the population before going through the steps of mutations and crossovers. Note that the Neat object should be initialized with one species containing all the population so that a first mutation step can be performed.
 
 ```
 Function: Speciate a new Genome within the population
