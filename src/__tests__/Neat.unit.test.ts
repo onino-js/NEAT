@@ -2,10 +2,16 @@ import { Neat } from "../Neat";
 import { NeatUtils } from "../NeatUtils";
 
 NeatUtils.initializePopulation = jest.fn();
-NeatUtils.createNewPopulation = jest.fn();
+NeatUtils.selectPopulation = jest.fn();
+NeatUtils.crossoverPopulation = jest.fn();
+NeatUtils.mutatePopulation = jest.fn();
 NeatUtils.speciatePopulation = jest.fn();
 NeatUtils.evaluateFitness = jest.fn();
-NeatUtils.evaluateCriteria = jest.fn();
+NeatUtils.evaluateCriteria = jest.fn(() => false);
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
 
 describe("class Neat", () => {
   describe("Constructor", () => {
@@ -25,23 +31,29 @@ describe("class Neat", () => {
       expect(() => new Neat({ maxEpoch: [3] })).toThrow();
     });
   });
-  describe("Run", () => {
+  describe("Run - run the Neat algorithm", () => {
     const neat = new Neat();
-    neat.run();
-    it("Trigger initialize population method one time", () => {
+    it("Trigger initialize population method maxEpoch time", () => {
+      neat.run();
       expect(NeatUtils.initializePopulation).toHaveBeenCalledTimes(1);
     });
-    it("Trigger create new population maxEpoch times", () => {
-      expect(NeatUtils.createNewPopulation).toHaveBeenCalledTimes(
+  });
+  describe("evealuate criteria always return false", () => {
+    const neat = new Neat();
+    it("Trigger speciate, mutate, select and crossover maxEpoch times", () => {
+      neat.run();
+      expect(NeatUtils.speciatePopulation).toHaveBeenCalledTimes(
         neat.configuration.maxEpoch
       );
-    });
-    it("Trigger evaluate fitness maxEpoch times", () => {
+      expect(NeatUtils.mutatePopulation).toHaveBeenCalledTimes(
+        neat.configuration.maxEpoch
+      );
+      expect(NeatUtils.crossoverPopulation).toHaveBeenCalledTimes(
+        neat.configuration.maxEpoch
+      );
       expect(NeatUtils.evaluateFitness).toHaveBeenCalledTimes(
         neat.configuration.maxEpoch
       );
-    });
-    it("Trigger evaluate criteria maxEpoch times", () => {
       expect(NeatUtils.evaluateCriteria).toHaveBeenCalledTimes(
         neat.configuration.maxEpoch
       );

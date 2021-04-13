@@ -38,38 +38,6 @@ The encoding has been choosen to solve the problems described in the [NEAT prese
 > connection gene is expressed (an enable bit), and an innovation number, which allows
 > finding corresponding genes.
 
-```
-Object: Genome
-properties:
-    - One collection of NodeGenes.
-    - One collection of ConnexionGenes.
-```
-
-```
-Object: ConnexionGene
-properties:
-    - An input NodeGene.
-    - An output NodeGene.
-    - A Number representing the weight of the connexion.
-    - A boolean representing wether or not the connexion is activated.
-    - A Number representing the innovation number.
-```
-
-```
-Object: NodeGene
-properties:
-    - The type of node (input, output or hidden).
-    - A Number representing the innovation number.
-```
-
-The innovation number will be used to perform crossovers between individuals of the same species. Also we need to define a function that tells us wether or not two Nodes can be connected:
-
-```
-Function: Can Nodes connect to each other ?
-Parameters: Node 1, Node 2
-returns: yes or not
-```
-
 ![Encoding the genome in neat algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/images/genotype-encoding.png?raw=true, "Encoding the genome in neat algorithm")
 
 _Figure 1: A genotype to phenotype mapping example. A genotype is depicted that
@@ -77,6 +45,26 @@ produces the shown phenotype. There are 3 input nodes, one hidden, and one outpu
 node, and seven connection definitions, one of which is recurrent. The second gene is
 disabled, so the connection that it specifies (between nodes 2 and 4) is not expressed in
 the phenotype._
+
+```
+Object: Genome
+properties:
+    - One collection of NodeGenes.
+    - One collection of ConnexionGenes.
+
+Object: ConnexionGene
+properties:
+    - An input NodeGene.
+    - An output NodeGene.
+    - A Number representing the weight of the connexion.
+    - A boolean representing wether or not the connexion is activated.
+    - A Number representing the innovation number.
+
+Object: NodeGene
+properties:
+    - The type of node (input, output or hidden).
+    - A Number representing the innovation number.
+```
 
 The correponding members (Phenotype, Node and Connexion) can also be defined:
 
@@ -87,21 +75,25 @@ properties:
     - The current fitness
     - An input object containing input values
     - An output object containing output values
-```
 
-```
 Object: Node
 properties:
     - A NodeGene
     - The current output value
-```
 
-```
 Object: Connexion
 properties:
     - A ConnexionGene
     - An input Node
     - An output Node
+```
+
+The innovation number will be used to perform crossovers between individuals of the same species. Also we need to define a function that tells us wether or not two Nodes can be connected:
+
+```
+Function: Can Nodes connect to each other ?
+Parameters: Node 1, Node 2
+returns: yes or not
 ```
 
 ## Tracking topological changes

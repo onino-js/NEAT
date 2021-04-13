@@ -1,7 +1,12 @@
 import { INITIAL_CONFIGURATION } from "./configuration";
 import { Phenotype, Neuron, Axon } from "./Phenotype";
 import { AxonGene, Genome, NeuronGene } from "./Genome";
-import { INeatConfiguration, NeuronType } from "./models";
+import {
+  IdistanceConfiguration,
+  IfitnessFunction,
+  INeatConfiguration,
+  NeuronType,
+} from "./models";
 import { Neat } from "./Neat";
 import { Species } from "./Genome";
 
@@ -10,11 +15,11 @@ import { Species } from "./Genome";
  * [See more information about implementation](https://github.com/onino-js/NEAT/blob/main/documentation/neat-implementation.md)
  */
 class NeatUtils {
-  public configuration = INITIAL_CONFIGURATION;
-  constructor(configuration: Partial<INeatConfiguration>) {
-    Object.assign(this.configuration, configuration);
-    NeatUtils.checkConfiguration(this.configuration);
-  }
+  // public configuration = INITIAL_CONFIGURATION;
+  // constructor(configuration: Partial<INeatConfiguration>) {
+  //   Object.assign(this.configuration, configuration);
+  //   NeatUtils.checkConfiguration(this.configuration);
+  // }
   /**
    * Check the configuration object provided by user. Throw error if any.
    *
@@ -47,19 +52,38 @@ class NeatUtils {
   };
 
   static initializePopulation(neat: Neat) {
-    neat.species = [new Species()];
-    new Array(neat.configuration.populationSize).fill(0).forEach((n, i) => {
-      neat.species[0].addGenome(
-        new Genome({ shape: neat.configuration.shape })
-      );
-    });
+    // neat.species = [new Species()];
+    // new Array(neat.configuration.populationSize).fill(0).forEach((n, i) => {
+    //   neat.species[0].addGenome(
+    //     new Genome({ shape: neat.configuration.shape })
+    //   );
+    // });
+  }
+
+  /**
+   * Make a selection over a population of species.
+   * Repove X% of the population using adjustedFttness as discriminent
+   *
+   * @param {Neat} neat A neat object.
+   * @return {Neat} neat A neat object with truncated population and species
+   */
+  static selectPopulation(neat: Neat): Neat {
+    const sortedPopulation = neat.population.sort(
+      (a, b) => a.adjustedFitness - b.adjustedFitness
+    );
+    const removeIndex = Math.floor(
+      (1 - neat.configuration.survivalRate) * sortedPopulation.length
+    );
+    neat.population = sortedPopulation.slice(
+      removeIndex,
+      sortedPopulation.length
+    );
+    return neat;
   }
 
   static speciatePopulation(neat: Neat) {}
 
   static evaluateFitness(neat: Neat) {}
-
-  static selectPopulation(neat: Neat) {}
 
   static crossoverPopulation(neat: Neat) {}
 
@@ -71,7 +95,7 @@ class NeatUtils {
 
   static createNewPopulation(neat: Neat) {
     // Step 3.1 - Select best performers based on fitness threshold
-    NeatUtils.selectPopulation(neat);
+    // NeatUtils.selectPopulation(neat);
     // Step 3.2 - Sort population into different species
     NeatUtils.speciatePopulation(neat);
     // Step 3.2 - Create new individuals with crossover manupulation
@@ -87,8 +111,14 @@ class NeatUtils {
    * @param {[Genome, Genome]} genomes An array of exactly two Genomes.
    * @return {number} the distance between the two Genomes.
    */
-  public computeDistance({ genomes }: { genomes: [Genome, Genome] }): number {
-    const { c1, c2, c3 } = this.configuration.distanceConfiguration;
+  static computeDistance({
+    genomes,
+    distanceConfiguration,
+  }: {
+    genomes: [Genome, Genome];
+    distanceConfiguration: IdistanceConfiguration;
+  }): number {
+    const { c1, c2, c3 } = distanceConfiguration;
     const E = NeatUtils.computeNumberOfExcessGenes(genomes);
     const D = NeatUtils.computeNumberOfDisjointGenes(genomes);
     const W = NeatUtils.computeAverageWieghtDifference(genomes);
@@ -120,7 +150,10 @@ class NeatUtils {
    * @return {number} the number of disjoint genes.
    */
   static computeNumberOfDisjointGenes(genomes: [Genome, Genome]): number {
-    return 0;
+    return (
+      NeatUtils.computeNumberOfMissmatchGenes(genomes) -
+      NeatUtils.computeNumberOfExcessGenes(genomes)
+    );
   }
 
   /**
@@ -154,50 +187,103 @@ class NeatUtils {
   }
 
   /**
-   * Compute the adjusted fitness of a Genome.
+   * Compute the adjusted fitness of each phenotype of a Neat project.
    *
-   * @param {[Phenotype, Phenotype]} phenotypes An array of exactly two Phenotypes.
-   * @return {number} The adjusted fitness of the phenotype.
+   * @param {Neat} neat A neat object.
+   * @return {Neat} A Neat object whose phenotypes have an adjusted fitness updated property.
    */
-  public computeAdjustedFitness(
-    phenotype: Phenotype,
-    population: Phenotype[]
-  ): number {
-    const sh = (d: number) =>
-      d > this.configuration.distanceConfiguration.compatibilityThreshold
-        ? 0
-        : 1;
-    const fitness = this.configuration.fitnessFunction(phenotype);
-    let sumSh = population.reduce((acc, cur) => {
+  static computeAdjustedFitness(phenotype: Phenotype, neat: Neat): number {
+    const { fitnessFunction, distanceConfiguration } = neat.configuration;
+    const fitness = fitnessFunction(phenotype);
+    let sumSh = neat.population.reduce((acc, cur) => {
       const d = this.computeDistance({
         genomes: [cur.genome, phenotype.genome],
+        distanceConfiguration: distanceConfiguration,
       });
-      return acc + sh(d);
+      return (
+        acc +
+        NeatUtils.shFunction(d, distanceConfiguration.compatibilityThreshold)
+      );
     }, 0);
     return fitness / sumSh;
   }
 
   /**
-   * Make a selection over a population of species
+   * Compute the adjusted fitness of each phenotype of a Neat project.
+   *
+   * @param {Neat} neat A neat object.
+   * @return {Neat} A Neat object whose phenotypes have an adjusted fitness updated property.
+   */
+  static computeAdjustedFitnesses(neat: Neat): Neat {
+    neat.population.forEach((phenotype) => {
+      phenotype.fitness = neat.configuration.fitnessFunction(phenotype);
+      phenotype.adjustedFitness = NeatUtils.computeAdjustedFitness(
+        phenotype,
+        neat
+      );
+    });
+    return neat;
+  }
+
+  static shFunction(d: number, compatibilityThreshold: number) {
+    return d > compatibilityThreshold ? 0 : 1;
+  }
+
+  /**
+   * Sort an array of genomes using the fitness as discriminent
    *
    * @param {Species[]} species An array of exactly two Phenotypes.
    * @return {Species[]} The adjusted fitness of the phenotype.
    */
-  public selectPopulation(species: Species[]): Species[] {
-    const fs = species.map((s) =>
-      s.genomes.reduce(
-        (acc, cur) =>
-          acc +
-          this.computeAdjustedFitness(
-            Phenotype.create(cur),
-            NeatUtils.getPopulationFromSpecies(species)
-          ),
-        0
-      )
+  // static sortGenomesByFitness(
+  //   genomes: Genome[],
+  //   fitnessFunction: IfitnessFunction
+  // ): Genome[] {
+  //   return NeatUtils.sortPhenotypeByFitness(
+  //     genomes.map((g) => Phenotype.create(g)),
+  //     fitnessFunction
+  //   ).map((p) => p.genome);
+  // }
+
+  /**
+   * Sort an array of phenotypes using the fitness as discriminent
+   *
+   * @param {Species[]} species An array of exactly two Phenotypes.
+   * @return {Species[]} The adjusted fitness of the phenotype.
+   */
+  static sortPhenotypeByFitness(
+    phenotypes: Phenotype[],
+    fitnessFunction: IfitnessFunction
+  ): Phenotype[] {
+    return phenotypes.sort(
+      (p1, p2) => fitnessFunction(p1) - fitnessFunction(p2)
+    );
+  }
+
+  /**
+   * Sort a population using the fitness as discriminent
+   *
+   * @param {Species[]} species An array of exactly two Phenotypes.
+   * @return {Species[]} The adjusted fitness of the phenotype.
+   */
+  // static sortSpecies(species: Genome[][], fitnessFunction: IfitnessFunction) {
+  //   return species.map((s) =>
+  //     NeatUtils.sortGenomesByFitness(s, fitnessFunction)
+  //   );
+  // }
+
+  /**
+   * For each , get the numper of individuals for the next generation
+   *
+   * @param {Neat} neat A neat object.
+   * @return {number[]} An array of number representing the total number of individual for the next generation.
+   */
+  static getPopulationSizeBySpecies(neat: Neat): number[] {
+    const fs = neat.species.map((s) =>
+      s.reduce((acc, cur) => acc + cur.phenotype.adjustedFitness, 0)
     );
     const totFs = fs.reduce((cur, acc) => acc + cur, 0);
-    const percentages = fs.map((f) => f / totFs);
-    return species;
+    return fs.map((f) => (f / totFs) * neat.configuration.populationSize);
   }
 
   /**
@@ -206,12 +292,12 @@ class NeatUtils {
    * @param {Species[]} species An array of exactly two Phenotypes.
    * @return {Phenotype[]} An array of Phenotypes.
    */
-  static getPopulationFromSpecies(species: Species[]): Phenotype[] {
-    return species
-      .map((s) => s.genomes)
-      .flat()
-      .map((g) => Phenotype.create(g));
-  }
+  // static getPopulationFromSpecies(species: Genome[][]): Phenotype[] {
+  //   return species
+  //     .map((s) => s)
+  //     .flat()
+  //     .map((g) => Phenotype.create(g));
+  // }
 
   private getAllGenomes(neat: Neat) {}
 
@@ -245,39 +331,42 @@ class NeatUtils {
    * @param {number[]} shape A shape object.
    * @return {Phenotype} A perceptron network
    */
-  static generatePerceptron = (layers: number[]) => {
-    NeatUtils.checkShape(layers);
+  static generatePerceptron = (shape: number[]) => {
+    NeatUtils.checkShape(shape);
+    const genome = new Genome({ shape });
+    const phenotype = new Phenotype(genome);
+
     let neurons: Neuron[] = [];
     let axons: Axon[] = [];
 
     // Create neurons
     // For each layer
-    layers.forEach((layer, layerIndex) => {
-      // For each neuron in the layer
-      new Array(layer).fill(0).forEach((n) => {
-        const type =
-          layerIndex === 0
-            ? NeuronType.INPUT
-            : layerIndex > 0 && layerIndex < layers.length - 1
-            ? NeuronType.HIDDEN
-            : NeuronType.OUTPUT;
-        const neuron = new Neuron({ type, layerIndex });
-        neurons.push(neuron);
-      });
-    });
+    // shape.forEach((layer, layerIndex) => {
+    //   // For each neuron in the layer
+    //   new Array(layer).fill(0).forEach((n) => {
+    //     const type =
+    //       layerIndex === 0
+    //         ? NeuronType.INPUT
+    //         : layerIndex > 0 && layerIndex < shape.length - 1
+    //         ? NeuronType.HIDDEN
+    //         : NeuronType.OUTPUT;
+    //     const neuron = new Neuron({ type, layerIndex });
+    //     neurons.push(neuron);
+    //   });
+    // });
 
-    // Create array of axons
-    neurons.forEach((neuron) => {
-      if (neuron.type === NeuronType.OUTPUT) return;
-      const nextLayerNeurons = neurons.filter(
-        (n) => n.layerIndex === neuron.layerIndex + 1
-      );
-      nextLayerNeurons.forEach((n) => {
-        const axon = new Axon({ input: neuron, output: n });
-        axons.push(axon);
-      });
-    });
-    return new Phenotype({ neurons, axons, layers });
+    // // Create array of axons
+    // neurons.forEach((neuron) => {
+    //   if (neuron.type === NeuronType.OUTPUT) return;
+    //   const nextLayerNeurons = neurons.filter(
+    //     (n) => n.layerIndex === neuron.layerIndex + 1
+    //   );
+    //   nextLayerNeurons.forEach((n) => {
+    //     const axon = new Axon({ input: neuron, output: n });
+    //     axons.push(axon);
+    //   });
+    // });
+    return new Phenotype(genome, { neurons, axons, shape });
   };
 }
 

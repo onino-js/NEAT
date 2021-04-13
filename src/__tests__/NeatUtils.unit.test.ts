@@ -1,6 +1,8 @@
 import { NeuronType } from "./../models";
 import { AxonGene, Genome, NeuronGene } from "../Genome";
 import { NeatUtils } from "./../NeatUtils";
+import { Neat } from "../Neat";
+import { Phenotype } from "../Phenotype";
 
 describe("class NeatUtils", () => {
   describe("CheckShape", () => {
@@ -116,5 +118,19 @@ describe("class NeatUtils", () => {
     genome2.axonGenes[0].innovation = 9;
     d = NeatUtils.computeNumberOfMissmatchGenes([genome1, genome2]);
     expect(d).toEqual(4);
+  });
+  describe("selectPopulation", () => {
+    const neat = new Neat();
+    const genomes = new Array(100).fill(0).map((d) => new Genome());
+    const g1 = new Genome();
+    const g2 = new Genome();
+    neat.population = genomes
+      .map((g) => g.phenotype)
+      .map((p, i) => ({ ...p, adjustedFitness: i } as Phenotype));
+    it("Remove the correct percentage of the population", () => {
+      NeatUtils.selectPopulation(neat);
+      expect(neat.population.length).toEqual(50);
+    });
+    it("Only the bests survived", () => {});
   });
 });

@@ -1,11 +1,14 @@
 import { INITIAL_CONFIGURATION } from "./configuration";
 import { INeatConfiguration } from "./models";
 import { NeatUtils } from "./NeatUtils";
-import { Species } from "./Genome";
+import { Genome } from "./Genome";
+import { Phenotype } from "./Phenotype";
 
 /** Class representing the NEAT algorithm */
 export class Neat {
-  public species: Species[]; // An array of species representing the whole population
+  public species: Genome[][]; // An array of array of Genomes representing the whole population. Each array representing a species
+  public population: Phenotype[];
+  public maxInnovation: number = 0;
   public configuration: INeatConfiguration = INITIAL_CONFIGURATION; // A configuration object for the NEAT algorithm
   private epoch: number = 0; // The actual iteration index
 
@@ -22,18 +25,21 @@ export class Neat {
 
   /**
    * Run the NEAT algorithmn:
-   * Step 1 - Initialize population with random individuals
-   * Step 2 - For each individual, evaluate fitness
-   * Step 3 - Create new population
-   * Step 4 - Evaluate criteria
    */
   public run() {
     NeatUtils.initializePopulation(this);
-    while (this.configuration.maxEpoch > this.epoch) {
+    while (!this.finished) {
+      // console.log(this.finished(), this.converged());
       NeatUtils.evaluateFitness(this);
-      NeatUtils.createNewPopulation(this);
+      NeatUtils.speciatePopulation(this);
+      NeatUtils.selectPopulation(this);
+      NeatUtils.mutatePopulation(this);
+      NeatUtils.crossoverPopulation(this);
       NeatUtils.evaluateCriteria(this);
       this.epoch++;
     }
+  }
+  get finished(): boolean {
+    return this.configuration.maxEpoch === this.epoch;
   }
 }

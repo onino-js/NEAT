@@ -1,24 +1,30 @@
-import { Genome } from "./Genome";
+import { AxonGene, Genome, NeuronGene } from "./Genome";
 import { NeuronType } from "./models";
 import { Identifiable } from "./utils/Identifiable";
 
 class Phenotype extends Identifiable {
   public genome: Genome;
-  public neurons: Neuron[];
-  public axons: Axon[];
+  public neurons: Neuron[] = [];
+  public axons: Axon[] = [];
   public fitness: number;
+  public adjustedFitness: number;
   public outputValues: number[] = [];
-  public layers?: number[];
-  constructor(opt?: Partial<Phenotype>) {
+  public shape?: number[];
+
+  constructor(genome: Genome, opt?: Partial<Phenotype>) {
     super();
+    this.build(genome);
     Object.assign(this, opt);
   }
-  public feedForward(inputs: number[]): number[] {
-    return this.outputValues;
+
+  private build(genome: Genome) {
+    this.genome = genome;
+    genome.axonGenes.forEach((ag) => this.axons.push(new Axon(ag)));
+    genome.neuronGenes.forEach((ng) => this.neurons.push(new Neuron(ng)));
   }
 
-  static create(genome: Genome): Phenotype {
-    return new Phenotype();
+  public feedForward(inputs: number[]): number[] {
+    return this.outputValues;
   }
 
   get inputNodes() {
@@ -30,9 +36,13 @@ class Phenotype extends Identifiable {
   get outputNodes() {
     return this.neurons.filter((n) => n.type === NeuronType.OUTPUT);
   }
+  get layered(): boolean {
+    return this.shape && this.shape.length > 0;
+  }
 }
 
 class Neuron extends Identifiable {
+  public neuronGene: NeuronGene;
   public value: number;
   public active: boolean;
   public type: NeuronType;
@@ -41,21 +51,25 @@ class Neuron extends Identifiable {
   public innovation: number;
   public replacedAxon: Axon;
   public layerIndex?: number;
-  constructor(opt: Partial<Neuron>) {
+
+  constructor(neuronGene: NeuronGene, opt?: Partial<Neuron>) {
     super();
+    this.neuronGene = neuronGene;
     Object.assign<Neuron, Partial<Neuron>>(this, opt);
   }
 }
 
 class Axon extends Identifiable {
-  public readonly id: string;
+  public axonGene: AxonGene;
   public weight: number;
   public active: boolean;
   public input: Neuron;
   public output: Neuron;
   public innovation: number;
-  constructor(opt: Partial<Axon>) {
+
+  constructor(axonGene: AxonGene, opt?: Partial<Axon>) {
     super();
+    this.axonGene = axonGene;
     Object.assign<Axon, Partial<Axon>>(this, opt);
   }
 }

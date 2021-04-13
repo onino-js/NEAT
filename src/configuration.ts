@@ -2,6 +2,7 @@ import { INeatConfiguration } from "./models";
 
 export const INITIAL_CONFIGURATION: INeatConfiguration = {
   populationSize: 200,
+  survivalRate: 0.5,
   mutationRates: {
     addNeuronGene: 0.05,
     addAxonGene: 0.05,

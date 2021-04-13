@@ -17,6 +17,7 @@ export interface ImutationRates {
 
 export interface INeatConfiguration {
   populationSize: number; // The total population size of each generation
+  survivalRate: number; // The survival rate to apply during the selection process
   mutationRates: ImutationRates; // An object representing mutation rates for each kind of mutation
   maxEpoch: number; // The maximum number of iteration of the NEAT algorithm
   shape: [number, number, number]; // The initial shape of the network. The first number is the number of inputs, then hiddens and outputs.

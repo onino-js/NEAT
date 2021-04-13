@@ -1,4 +1,5 @@
 import { IGene, NeuronType } from "./models";
+import { Axon, Neuron, Phenotype } from "./Phenotype";
 import { Identifiable } from "./utils/Identifiable";
 
 interface IGenomeParams extends Partial<Genome> {
@@ -12,10 +13,14 @@ interface IGenomeParams extends Partial<Genome> {
 class Genome extends Identifiable {
   public neuronGenes: NeuronGene[] = [];
   public axonGenes: AxonGene[] = [];
-  constructor({ shape, ...opt }: IGenomeParams) {
+  public phenotype: Phenotype;
+  public shape: number[];
+
+  constructor(opt?: IGenomeParams) {
     super();
     Object.assign<Genome, Partial<Genome>>(this, opt);
-    shape && this.initialize(shape);
+    opt?.shape && this.initialize(opt.shape);
+    this.phenotype = new Phenotype(this);
   }
 
   private initialize(shape: number[]) {}
@@ -45,7 +50,9 @@ interface INeuronGeneParams {
 class NeuronGene extends Identifiable {
   public type: NeuronType;
   public innovation: number;
-  constructor(opt: Partial<NeuronGene>) {
+  public layerIndex?: number;
+  public neuron: Neuron;
+  constructor(opt?: Partial<NeuronGene>) {
     super();
     Object.assign<NeuronGene, Partial<NeuronGene>>(this, opt);
   }
@@ -61,6 +68,8 @@ class AxonGene extends Identifiable {
   public input: number;
   public output: number;
   public innovation: number;
+  public axon: Axon;
+
   constructor(opt: Partial<NeuronGene>) {
     super();
     Object.assign<AxonGene, Partial<AxonGene>>(this, opt);
