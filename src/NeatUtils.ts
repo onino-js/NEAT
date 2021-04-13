@@ -211,6 +211,7 @@ class NeatUtils {
     // Create a new Axon by picking random NeuronGene
     const input = NeatUtils.randomPick(genome.neuronGenes);
     const output = NeatUtils.randomPick(genome.neuronGenes);
+    // TODO - can connect and retry !!!!
     const axonGene = new AxonGene({ input, output, weight: Math.random() });
     // Do nothing if the new connexion is recurrent
     if (NeatUtils.isConnexionRecurent(axonGene, allAxonGenes)) {
