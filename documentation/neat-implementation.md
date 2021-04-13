@@ -1,6 +1,6 @@
 # NEAT implementation
 
-The aim of this document is to synthetize the rules for designing a NEAT and to describe them with an algorithmic point of view (ie. as a succetion of high level computing steps). The description is language agnostic so that a developper would easily reproduce a NEAT in any programming language. All quotes in this document comes from [Evolving Neural Networks through Augmenting Topologies](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf). Any suggestion to improve the readability through standardized pseudocode is very welcome (see the [contributing section](https://github.com/onino-js/NEAT/blob/main/documentation/3-contributing.md) ).
+This document synthetizes the rules for designing a NEAT and describes them as a succetion of high level computing steps. All quotes in this document come from [Evolving Neural Networks through Augmenting Topologies](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf). Any suggestion to improve the readability through standardized pseudocode is very welcome (see the [contributing section](https://github.com/onino-js/NEAT/blob/main/documentation/3-contributing.md) ).
 
 ## Introduction
 
