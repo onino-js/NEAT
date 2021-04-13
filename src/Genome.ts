@@ -70,7 +70,7 @@ class AxonGene extends Identifiable {
   public innovation: number;
   public axon: Axon;
 
-  constructor(opt?: Partial<NeuronGene>) {
+  constructor(opt?: Partial<AxonGene>) {
     super();
     Object.assign<AxonGene, Partial<AxonGene>>(this, opt);
   }

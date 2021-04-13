@@ -124,13 +124,14 @@ describe("class NeatUtils", () => {
     const genomes = new Array(100).fill(0).map((d) => new Genome());
     const g1 = new Genome();
     const g2 = new Genome();
-    neat.population = genomes
-      .map((g) => g.phenotype)
-      .map((p, i) => ({ ...p, adjustedFitness: i } as Phenotype));
+    // neat.population = genomes
+    //   .map((g) => g.phenotype)
+    //   .map((p, i) => ({ ...p, adjustedFitness: i } as Phenotype));
     it("Remove the correct percentage of the population", () => {
       NeatUtils.selectPopulation(neat);
       expect(neat.population.length).toEqual(50);
     });
-    it("Only the bests survived", () => {});
+    //  it("Only the bests survived", () => {});
   });
+  //describe("getInnovationIndex", () => {});
 });

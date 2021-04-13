@@ -6,7 +6,7 @@ NeatUtils.selectPopulation = jest.fn();
 NeatUtils.crossoverPopulation = jest.fn();
 NeatUtils.mutatePopulation = jest.fn();
 NeatUtils.speciatePopulation = jest.fn();
-NeatUtils.evaluateFitness = jest.fn();
+NeatUtils.computeFitness = jest.fn();
 NeatUtils.evaluateCriteria = jest.fn(() => false);
 
 afterEach(() => {
@@ -51,7 +51,7 @@ describe("class Neat", () => {
       expect(NeatUtils.crossoverPopulation).toHaveBeenCalledTimes(
         neat.configuration.maxEpoch
       );
-      expect(NeatUtils.evaluateFitness).toHaveBeenCalledTimes(
+      expect(NeatUtils.computeFitness).toHaveBeenCalledTimes(
         neat.configuration.maxEpoch
       );
       expect(NeatUtils.evaluateCriteria).toHaveBeenCalledTimes(

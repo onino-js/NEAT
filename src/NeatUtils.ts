@@ -1,85 +1,56 @@
-import { INITIAL_CONFIGURATION } from "./configuration";
 import { Phenotype, Neuron, Axon } from "./Phenotype";
 import { AxonGene, Genome, NeuronGene } from "./Genome";
 import {
   IdistanceConfiguration,
-  IfitnessFunction,
-  IGene,
   INeatConfiguration,
   NeuronType,
 } from "./models";
 import { Neat } from "./Neat";
-import { Species } from "./Genome";
 
 /**
  * Class containing utiliity functions for the NEAT algorithm .
  * [See more information about implementation](https://github.com/onino-js/NEAT/blob/main/documentation/neat-implementation.md)
  */
 class NeatUtils {
-  // public configuration = INITIAL_CONFIGURATION;
-  // constructor(configuration: Partial<INeatConfiguration>) {
-  //   Object.assign(this.configuration, configuration);
-  //   NeatUtils.checkConfiguration(this.configuration);
-  // }
   /**
-   * Check the configuration object provided by user. Throw error if any.
+   * Initialize the population of a Neat object
    *
-   * @param {Partial<INeatConfiguration>} configuration the configuration object.
+   * @param {Neat} neat A neat object.
+   * @return {Genome[]} the population as an array of genomes
    */
-  static checkConfiguration(configuration: Partial<INeatConfiguration>) {
-    if (!NeatUtils.utils.isPositiveInteger(configuration.maxEpoch)) {
-      throw new Error(
-        "Error in configuration - maxEpoch should be a positive integer"
-      );
-    }
-  }
-
-  /**
-   * Check a shape object. Throw error if any.
-   *
-   * @param {number[]} shape the configuration object.
-   */
-  static checkShape(shape: number[]) {
-    shape.forEach((layer, layerIndex) => {
-      if (layer <= 0 || !Number.isInteger(layer))
-        throw new Error(
-          "Error calling generatePerceptron: parameter should be an array of positive integer"
-        );
-    });
-  }
-
-  static utils = {
-    isPositiveInteger: (n: any) => Number.isInteger(n) && n >= 0,
-  };
-
-  static initializePopulation(neat: Neat) {
-    // neat.species = [new Species()];
-    // new Array(neat.configuration.populationSize).fill(0).forEach((n, i) => {
-    //   neat.species[0].addGenome(
-    //     new Genome({ shape: neat.configuration.shape })
-    //   );
-    // });
+  static initializePopulation(neat: Neat): Genome[] {
+    neat.species = [[]];
+    return [];
   }
 
   /**
    * Make a selection over a population of species.
-   * Repove X% of the population using adjustedFttness as discriminent
+   * Remove X% of the population using adjustedFttness as discriminent
    *
    * @param {Neat} neat A neat object.
    * @return {Neat} neat A neat object with truncated population and species
    */
   static selectPopulation(neat: Neat): Neat {
-    const sortedPopulation = neat.population.sort(
-      (a, b) => a.adjustedFitness - b.adjustedFitness
+    const species = neat.species.map((s) =>
+      s.sort(
+        (a, b) => a.phenotype.adjustedFitness - b.phenotype.adjustedFitness
+      )
     );
-    const removeIndex = Math.floor(
-      (1 - neat.configuration.survivalRate) * sortedPopulation.length
-    );
-    neat.population = sortedPopulation.slice(
-      removeIndex,
-      sortedPopulation.length
+    neat.species = species.map((s) =>
+      NeatUtils.removeXPercent(s, neat.configuration.survivalRate)
     );
     return neat;
+  }
+
+  /**
+   * Remove X percent items of a sorted array
+   *
+   * @param {any[]} items An array of object.
+   * @return {any[]} the truncated array
+   */
+  static removeXPercent(items: any[], rate) {
+    const removeIndex = Math.floor((1 - rate) * items.length);
+    return items.slice(removeIndex, items.length);
   }
 
   /**
@@ -292,6 +263,42 @@ class NeatUtils {
   /********************UTILITIES*************************/
   /******************************************************/
 
+  /**
+   * Check if provided argument is a positive integer.
+   *
+   * @param {any} n the variable to verify.
+   */
+  static isPositiveInteger(n: any) {
+    return Number.isInteger(n) && n >= 0;
+  }
+
+  /**
+   * Check the configuration object provided by user. Throw error if any.
+   *
+   * @param {Partial<INeatConfiguration>} configuration the configuration object.
+   */
+  static checkConfiguration(configuration: Partial<INeatConfiguration>) {
+    if (!NeatUtils.isPositiveInteger(configuration.maxEpoch)) {
+      throw new Error(
+        "Error in configuration - maxEpoch should be a positive integer"
+      );
+    }
+  }
+
+  /**
+   * Check a shape object. Throw error if any.
+   *
+   * @param {number[]} shape the configuration object.
+   */
+  static checkShape(shape: number[]) {
+    shape.forEach((layer, layerIndex) => {
+      if (layer <= 0 || !Number.isInteger(layer))
+        throw new Error(
+          "Error calling generatePerceptron: parameter should be an array of positive integer"
+        );
+    });
+  }
+
   static randomPick<T = any>(items: T[]) {
     return items[Math.floor(Math.random() * items.length)];
   }
@@ -439,49 +446,6 @@ class NeatUtils {
   }
 
   /**
-   * Sort an array of genomes using the fitness as discriminent
-   *
-   * @param {Species[]} species An array of exactly two Phenotypes.
-   * @return {Species[]} The adjusted fitness of the phenotype.
-   */
-  // static sortGenomesByFitness(
-  //   genomes: Genome[],
-  //   fitnessFunction: IfitnessFunction
-  // ): Genome[] {
-  //   return NeatUtils.sortPhenotypeByFitness(
-  //     genomes.map((g) => Phenotype.create(g)),
-  //     fitnessFunction
-  //   ).map((p) => p.genome);
-  // }
-
-  /**
-   * Sort an array of phenotypes using the fitness as discriminent
-   *
-   * @param {Species[]} species An array of exactly two Phenotypes.
-   * @return {Species[]} The adjusted fitness of the phenotype.
-   */
-  static sortPhenotypeByFitness(
-    phenotypes: Phenotype[],
-    fitnessFunction: IfitnessFunction
-  ): Phenotype[] {
-    return phenotypes.sort(
-      (p1, p2) => fitnessFunction(p1) - fitnessFunction(p2)
-    );
-  }
-
-  /**
-   * Sort a population using the fitness as discriminent
-   *
-   * @param {Species[]} species An array of exactly two Phenotypes.
-   * @return {Species[]} The adjusted fitness of the phenotype.
-   */
-  // static sortSpecies(species: Genome[][], fitnessFunction: IfitnessFunction) {
-  //   return species.map((s) =>
-  //     NeatUtils.sortGenomesByFitness(s, fitnessFunction)
-  //   );
-  // }
-
-  /**
    * For each , get the numper of individuals for the next generation
    *
    * @param {Neat} neat A neat object.
@@ -494,21 +458,6 @@ class NeatUtils {
     const totFs = fs.reduce((cur, acc) => acc + cur, 0);
     return fs.map((f) => (f / totFs) * neat.configuration.populationSize);
   }
-
-  /**
-   * Get a flat array of Phenotypes from a nested array of Genomes (Species)
-   *
-   * @param {Species[]} species An array of exactly two Phenotypes.
-   * @return {Phenotype[]} An array of Phenotypes.
-   */
-  // static getPopulationFromSpecies(species: Genome[][]): Phenotype[] {
-  //   return species
-  //     .map((s) => s)
-  //     .flat()
-  //     .map((g) => Phenotype.create(g));
-  // }
-
-  private getAllGenomes(neat: Neat) {}
 
   /**
    * Get an array of NeuronGene object from a shape.
@@ -543,38 +492,39 @@ class NeatUtils {
   static generatePerceptron = (shape: number[]) => {
     NeatUtils.checkShape(shape);
     const genome = new Genome({ shape });
-    const phenotype = new Phenotype(genome);
-
     let neurons: Neuron[] = [];
     let axons: Axon[] = [];
 
     // Create neurons
     // For each layer
-    // shape.forEach((layer, layerIndex) => {
-    //   // For each neuron in the layer
-    //   new Array(layer).fill(0).forEach((n) => {
-    //     const type =
-    //       layerIndex === 0
-    //         ? NeuronType.INPUT
-    //         : layerIndex > 0 && layerIndex < shape.length - 1
-    //         ? NeuronType.HIDDEN
-    //         : NeuronType.OUTPUT;
-    //     const neuron = new Neuron({ type, layerIndex });
-    //     neurons.push(neuron);
-    //   });
-    // });
+    shape.forEach((layer, layerIndex) => {
+      // For each neuron in the layer
+      new Array(layer).fill(0).forEach((n) => {
+        const type =
+          layerIndex === 0
+            ? NeuronType.INPUT
+            : layerIndex > 0 && layerIndex < shape.length - 1
+            ? NeuronType.HIDDEN
+            : NeuronType.OUTPUT;
+        const neuronGene = new NeuronGene({ type });
+        const neuron = new Neuron(neuronGene, { type, layerIndex });
+        neurons.push(neuron);
+      });
+    });
 
-    // // Create array of axons
-    // neurons.forEach((neuron) => {
-    //   if (neuron.type === NeuronType.OUTPUT) return;
-    //   const nextLayerNeurons = neurons.filter(
-    //     (n) => n.layerIndex === neuron.layerIndex + 1
-    //   );
-    //   nextLayerNeurons.forEach((n) => {
-    //     const axon = new Axon({ input: neuron, output: n });
-    //     axons.push(axon);
-    //   });
-    // });
+    // Create array of axons
+    neurons.forEach((neuron) => {
+      if (neuron.type === NeuronType.OUTPUT) return;
+      const nextLayerNeurons = neurons.filter(
+        (n) => n.layerIndex === neuron.layerIndex + 1
+      );
+      // create a connexion with each neuron of next layer
+      nextLayerNeurons.forEach((n) => {
+        const axonGene = new AxonGene();
+        const axon = new Axon(axonGene, { input: neuron, output: n });
+        axons.push(axon);
+      });
+    });
     return new Phenotype(genome, { neurons, axons, shape });
   };
 }

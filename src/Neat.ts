@@ -6,7 +6,7 @@ import { Phenotype } from "./Phenotype";
 
 /** Class representing the NEAT algorithm */
 export class Neat {
-  public species: Genome[][]; // An array of array of Genomes representing the whole population. Each array representing a species
+  public species: Genome[][] = [[]]; // An array of array of Genomes representing the whole population. Each array representing a species
   public maxInnovation: number = 0;
   public configuration: INeatConfiguration = INITIAL_CONFIGURATION; // A configuration object for the NEAT algorithm
   private epoch: number = 0; // The actual iteration index
@@ -24,10 +24,6 @@ export class Neat {
 
   get population(): Phenotype[] {
     return this.species.flat().map((g) => g.phenotype);
-  }
-
-  get genePopulation(): Genome[] {
-    return this.species.flat();
   }
 
   set population(items: Phenotype[]) {
