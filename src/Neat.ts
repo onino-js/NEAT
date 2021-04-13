@@ -26,10 +26,6 @@ export class Neat {
     return this.species.flat().map((g) => g.phenotype);
   }
 
-  set population(items: Phenotype[]) {
-    this.population = items;
-  }
-
   /**
    * Run the NEAT algorithmn:
    */
