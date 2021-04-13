@@ -81,9 +81,58 @@ class NeatUtils {
     return neat;
   }
 
-  static speciatePopulation(neat: Neat) {}
+  /**
+   * Compute the adjusted fitness of each phenotype of a Neat project.
+   *
+   * @param {Neat} neat A neat object.
+   * @return {Neat} A Neat object whose phenotypes have an adjusted fitness updated property.
+   */
+  static computeFitness(neat: Neat): Neat {
+    neat.population.forEach((phenotype) => {
+      phenotype.fitness = neat.configuration.fitnessFunction(phenotype);
+      phenotype.adjustedFitness = NeatUtils.computeAdjustedFitness(
+        phenotype,
+        neat
+      );
+    });
+    return neat;
+  }
 
-  static evaluateFitness(neat: Neat) {}
+  /**
+   * Speciate the population of a Neat object.
+   * The adjusted fitness of each phenotype should have been updated before this operation
+   *
+   * @param {Neat} neat A neat object.
+   * @return {Genome[][]} An array of species.
+   */
+  static speciatePopulation(neat: Neat): Genome[][] {
+    const { distanceConfiguration } = neat.configuration;
+    // Pick random representant of actual species
+    const representants = neat.species.map((s) => NeatUtils.randomPick(s));
+    const newSpecies = representants.map((r) => []);
+    // Sort population in a new species array
+    neat.population.forEach((p) => {
+      let rIndex = 0; // The representant index
+      while (rIndex < representants.length) {
+        // Compute distance between the representant and the tested genome
+        const distance = NeatUtils.computeDistance({
+          genomes: [representants[rIndex], p.genome],
+          distanceConfiguration,
+        });
+        // If the two are compatible, push the genome into newSpecies with the same rIndex
+        if (distance <= distanceConfiguration.compatibilityThreshold) {
+          newSpecies[rIndex].push(p.genome);
+          return;
+        } else if (rIndex === representants.length - 1) {
+          representants.push(p.genome);
+          newSpecies.push([p.genome]);
+          return;
+        } else rIndex++;
+      }
+    });
+    neat.species = newSpecies;
+    return newSpecies;
+  }
 
   static crossoverPopulation(neat: Neat) {}
 
@@ -102,6 +151,10 @@ class NeatUtils {
     NeatUtils.crossoverPopulation(neat);
     // Step 3.2 - Create new individuals mutations
     NeatUtils.mutatePopulation(neat);
+  }
+
+  static randomPick<T = any>(items: T[]) {
+    return items[Math.floor(Math.random() * items.length)];
   }
 
   /**
@@ -206,23 +259,6 @@ class NeatUtils {
       );
     }, 0);
     return fitness / sumSh;
-  }
-
-  /**
-   * Compute the adjusted fitness of each phenotype of a Neat project.
-   *
-   * @param {Neat} neat A neat object.
-   * @return {Neat} A Neat object whose phenotypes have an adjusted fitness updated property.
-   */
-  static computeAdjustedFitnesses(neat: Neat): Neat {
-    neat.population.forEach((phenotype) => {
-      phenotype.fitness = neat.configuration.fitnessFunction(phenotype);
-      phenotype.adjustedFitness = NeatUtils.computeAdjustedFitness(
-        phenotype,
-        neat
-      );
-    });
-    return neat;
   }
 
   static shFunction(d: number, compatibilityThreshold: number) {

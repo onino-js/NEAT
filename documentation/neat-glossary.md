@@ -31,3 +31,9 @@ A Species is a collection of Phenotypes that are compatible. The compatibility h
 ### Speciation
 
 ### Epoch
+
+### Fitness
+
+### Distance
+
+### Compatibility
