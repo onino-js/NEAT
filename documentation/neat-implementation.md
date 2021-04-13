@@ -53,7 +53,7 @@ Object: Genome
 properties:
     - One collection of NodeGenes.
     - One collection of ConnexionGenes.
-    - The corresponding Phenoype object
+    - The corresponding Phenoype
 
 Object: ConnexionGene
 properties:
@@ -62,13 +62,13 @@ properties:
     - A Number representing the weight of the connexion.
     - A boolean representing wether or not the connexion is activated.
     - A Number representing the innovation number.
-    - The corresponding Connexion object
+    - The corresponding Connexion
 
 Object: NodeGene
 properties:
     - The type of node (input, output or hidden).
     - A Number representing the innovation number.
-    - The corresponding Node object
+    - The corresponding Node
 ```
 
 The correponding members (Phenotype, Node and Connexion) of those genetic objects can also be defined. Here make a circular one to one dependency with the pairs Genome/Phenotype, Node/NodeGene and Connexion/ConnexionGene.
@@ -76,25 +76,24 @@ The correponding members (Phenotype, Node and Connexion) of those genetic object
 ```
 Object: Phenotype
 properties:
-    - A Genome
+    - The corresponding Genome
     - The current fitness
     - An input object containing input values
     - An output object containing output values
-     - The corresponding Node object
 
 Object: Node
 properties:
-    - A NodeGene
+    - The corresponding NodeGene
     - The current output value
 
 Object: Connexion
 properties:
-    - A ConnexionGene
+    - The corresponding ConnexionGene
     - An input Node
     - An output Node
 ```
 
-The innovation number will be used to perform crossovers between individuals of the same species. Also we need to define a function that tells us wether or not two Nodes can be connected:
+Also we need to define a function that tells us wether or not two Nodes can be connected:
 
 ```
 Function: Can Nodes connect to each other ?
@@ -102,18 +101,21 @@ Parameters: Node 1, Node 2
 returns: yes or not
 ```
 
+The innovation number will be used to perform crossovers between individuals of the same species.
+
 ## Tracking topological changes
 
 Tracking topological changes will provide us a simple way to perform speciations and thus:
 
 - Make relevant crossovers with individuals of the same species.
-- Protect structural innovations that perform worse than top one.
+- Protect structural innovations.
 
 > Whenever a new gene appears (through structural mutation), a global innovation number is incremented
 > and assigned to that gene. The innovation numbers thus represent a chronology of the
 > appearance of every gene in the system.
 
-The innovation appears in the Gene objects (ConnexionGene and NodeGene), it is a positive integer.
+The innovation is a positive integer and appears in the Gene objects (ConnexionGene and NodeGene). The implementation is straitforward but we should
+check first if the innovation already exists before incrementing the global innovation number.
 
 > A possible problem is that the same structural innovation will receive different in-
 > novation numbers in the same generation if it occurs by chance more than once. How-
@@ -122,12 +124,12 @@ The innovation appears in the Gene objects (ConnexionGene and NodeGene), it is a
 > dependent mutations in the same generation, each identical mutation is assigned the
 > same innovation number. Thus, there is no resultant explosion of innovation numbers.
 
-In the Neat process, those instructions take place during the creation of new population of Genomes. Eventually, some structural mutations will occur leading to new Genomes. The mutation process should be triggerd in the scope of a tracking process describe below:
+In the Neat process, those instructions take place during the creation of new population of Genomes through mutations. Eventually. The mutation process should by succeded by a the tracking process.
 
 ```
 Function: Track a structural innovation after a mutation
-Parameters: A list of new Genes created by connexion mutation (1 gene) or node mutation (3 genes) and the collection of all existing Genes.
-Returns: The max innovation number and the new Gene with an updtade innovation number property.
+Parameters: A list of new Genes created by a mutation and the collection of all existing Genes.
+Returns: The list of Genes with an updtade innovation number property and optionaly the global innovation number.
 Steps:
 
     (For all Genes given as first parameter)
