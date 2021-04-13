@@ -4,11 +4,9 @@ This document synthetizes the rules for designing a NEAT and describes them as a
 
 ## Introduction
 
-A NEAT algorithm is a variation a Genetic algorithm which optimize neural networks. Before going further, you should know [the specific terms of Genetic aglgorithms and NEAT](https://github.com/onino-js/NEAT/blob/main/documentation/neat-glossary.md), and the [the basic implementation of a genetic algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md).
+A NEAT algorithm is a variation a Genetic algorithm which optimize neural networks. Before going further, you may want to know [the specific terms of Genetic aglgorithms and NEAT](https://github.com/onino-js/NEAT/blob/main/documentation/neat-glossary.md) and the [the basic implementation of a genetic algorithm](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md). Moreover, to understand the motivations behind the NEAT algorithm and the choices made for its implementation, you may want to read the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md).
 
-Moreover, to understand the motivations behind the NEAT algorithm and the choices made for its implementation, you may want to read the [NEAT presentation](https://github.com/onino-js/NEAT/blob/main/documentation/genetic-algorithm.md) before going forward.
-
-The algorithm we describe here will be composed of objects, collections of objects, and functions tha manipulates those objects and collections.The aim of the exercise is to define the properties of each object and all the functions with high level computing steps. In the rest of the document, we will use the following terms to designate the objects of different types:
+The NEAT algorithm we describe here will be composed of objects, collections of objects, and functions tha manipulates those objects and collections.The aim of the exercise is to define the properties of each object and all the functions with an easy readable style. In the rest of the document, we will use the following terms to designate the objects of different types:
 
 - Neat : an object that run the simulation.
 - Genome: an object that represent a genome.
