@@ -22,28 +22,48 @@ class Phenotype extends Identifiable {
    */
   constructor(genome: Genome, opt?: Partial<Phenotype>) {
     super();
-    this.build(genome);
+    this.genome = genome;
+    this.update();
     Object.assign(this, opt);
   }
 
-  private build(genome: Genome) {
-    this.genome = genome;
-    genome.axonGenes.forEach((ag) => this.axons.push(new Axon(ag)));
-    genome.neuronGenes.forEach((ng) => this.neurons.push(new Neuron(ng)));
+  public update() {
+    this.genome.axonGenes.forEach(({ axon }) => this.axons.push(axon));
+    this.genome.neuronGenes.forEach(({ neuron }) => this.neurons.push(neuron));
   }
 
   public feedForward(inputs: number[]): number[] {
+    // Get input neurons and assign input values
+    this.inputNodes
+      .sort((a, b) => a.neuronGene.innovation - b.neuronGene.innovation)
+      .forEach((n, i) => (n.value = inputs[i]));
+    // Create a stack of all Axons whose input are input neurons
+    const stack = this.axons.filter((a) => a.input.type === NeuronType.INPUT);
+    while (stack.length) {}
+
+    // While length of stack is not null
+    // Shift the stack and take the first Axon
+    // Get the output Neuron of that axon
+    // Feed the neuron
+
     return this.outputValues;
+  }
+
+  private reset() {
+    this.neurons.forEach((n) => (n.value = 0));
   }
 
   get inputNodes() {
     return this.neurons.filter((n) => n.type === NeuronType.INPUT);
+    // .sort((a, b) => a.innovation - b.innovation);
   }
   get hiddenNodes() {
     return this.neurons.filter((n) => n.type === NeuronType.HIDDEN);
+    //  .sort((a, b) => a.innovation - b.innovation);
   }
   get outputNodes() {
     return this.neurons.filter((n) => n.type === NeuronType.OUTPUT);
+    //  .sort((a, b) => a.innovation - b.innovation);
   }
   get layered(): boolean {
     return this.shape && this.shape.length > 0;
@@ -61,7 +81,6 @@ class Neuron extends Identifiable {
   public type: NeuronType;
   public inputCount: number;
   public inputTimes: number;
-  public innovation: number;
   public replacedAxon: Axon;
   public layerIndex?: number;
 
@@ -98,6 +117,12 @@ class Axon extends Identifiable {
     super();
     this.axonGene = axonGene;
     Object.assign<Axon, Partial<Axon>>(this, opt);
+  }
+
+  public feedForward() {
+    if (this.active) {
+      this.output.value += this.input.value * this.weight;
+    }
   }
 }
 

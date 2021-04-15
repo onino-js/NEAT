@@ -1,4 +1,5 @@
 import { IGene, NeuronType } from "./models";
+import { NeatUtils } from "./NeatUtils";
 import { Axon, Neuron, Phenotype } from "./Phenotype";
 import { Identifiable } from "./utils/Identifiable";
 
@@ -27,13 +28,33 @@ class Genome extends Identifiable {
    * Create NeuronGenes and AxonGenes from a shape object.
    * @param {number} shape - An array of number representing the number of inouts, hiddens and outputs
    */
-  private initialize(shape: number[]) {}
+  private initialize(shape: number[]) {
+    this.neuronGenes = NeatUtils.getNeuronGenesFromShape(shape);
+  }
 
   /**
    * Get all genes (Axons and Neurons) in a flat array
    */
   get genes(): IGene[] {
     return (this.neuronGenes as IGene[]).concat(this.axonGenes as IGene[]);
+  }
+  /**
+   * Return a copy of the Genome
+   */
+  public clone() {
+    const clone = new Genome({ ...this });
+    clone.axonGenes = clone.axonGenes.map((ag) => ag.clone());
+    clone.neuronGenes = clone.neuronGenes.map((ng) => ng.clone());
+    // reconnect nueron and axons
+    clone.axonGenes.forEach((ag) => {
+      ag.input = clone.neuronGenes.find(
+        (ng) => ng.innovation === ag.input.innovation
+      );
+      ag.output = clone.neuronGenes.find(
+        (ng) => ng.innovation === ag.output.innovation
+      );
+    });
+    return clone;
   }
 }
 
@@ -54,6 +75,13 @@ class NeuronGene extends Identifiable {
   constructor(opt?: Partial<NeuronGene>) {
     super();
     Object.assign<NeuronGene, Partial<NeuronGene>>(this, opt);
+    this.neuron = new Neuron(this);
+  }
+  /**
+   * Return a copy of the NeuronGene
+   */
+  public clone() {
+    return new NeuronGene({ ...this });
   }
 }
 
@@ -76,6 +104,17 @@ class AxonGene extends Identifiable {
   constructor(opt?: Partial<AxonGene>) {
     super();
     Object.assign<AxonGene, Partial<AxonGene>>(this, opt);
+    this.axon = new Axon(this);
+  }
+  /**
+   * Return a copy of the AxonGene
+   */
+  public clone() {
+    return new AxonGene({
+      ...this,
+      input: this.input.clone(),
+      output: this.output.clone(),
+    });
   }
 }
 

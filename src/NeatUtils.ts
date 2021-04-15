@@ -2,6 +2,7 @@ import { Phenotype, Neuron, Axon } from "./Phenotype";
 import { AxonGene, Genome, NeuronGene } from "./Genome";
 import {
   IdistanceConfiguration,
+  IGene,
   INeatConfiguration,
   NeuronType,
 } from "./models";
@@ -43,7 +44,7 @@ class NeatUtils {
   }
 
   /**
-   * Remove X percent items of a sorted array
+   * Remove X percent items of a sorted array.
    *
    * @param {any[]} items An array of object.
    * @return {any[]} the truncated array
@@ -81,6 +82,7 @@ class NeatUtils {
     const { distanceConfiguration } = neat.configuration;
     // Pick random representant of actual species
     const representants = neat.species.map((s) => NeatUtils.randomPick(s));
+    // Create a new Species array
     const newSpecies = representants.map((r) => []);
     // Sort population in a new species array
     neat.population.forEach((p) => {
@@ -95,6 +97,7 @@ class NeatUtils {
         if (distance <= distanceConfiguration.compatibilityThreshold) {
           newSpecies[rIndex].push(p.genome);
           return;
+          // Else set  a new representant of a new Species
         } else if (rIndex === representants.length - 1) {
           representants.push(p.genome);
           newSpecies.push([p.genome]);
@@ -106,6 +109,12 @@ class NeatUtils {
     return newSpecies;
   }
 
+  /**
+   * Mutate the population of a Neat object.
+   *
+   * @param {Neat} neat A neat object.
+   * @return {Neat} The neat object with a new population.
+   */
   static mutatePopulation(neat: Neat) {
     const {
       addAxonGene,
@@ -120,6 +129,7 @@ class NeatUtils {
           NeatUtils.changeWeightMutation(g);
       });
     });
+    return neat;
   }
 
   /**
@@ -137,14 +147,18 @@ class NeatUtils {
     const axonToMutate = NeatUtils.randomPick(genome.axonGenes);
     // Disable the connexion
     axonToMutate.active = false;
-    // Get the innovation number for this mutation
-    const innovation = NeatUtils.getInnovationFromNeuronMutation(
-      axonToMutate,
-      allAxonGenes
+    // Try to find an axonGene in all genes with same input and output innovations
+    const sameAxonGene = allAxonGenes.find(
+      (ag) =>
+        ag.input.innovation === input.innovation &&
+        ag.output.innovation === output.innovation
     );
+    // If found, assign the same innovation, else, assign the incremented global innovation number
+    const innovation =
+      sameAxonGene?.innovation || NeatUtils.getMaxInnovation(allAxonGenes) + 1;
     // create a new neuron gene
     const neuronGene = new NeuronGene({ innovation });
-    // create two new axons folowing instructions given in "#Node Mutation" of the documentation (neat-implementation)
+    // create two new axons following instructions given in "#Node Mutation" of the documentation (neat-implementation)
     const { input, output } = axonToMutate;
     const axonGeneIn = new AxonGene({
       weight: 1,
@@ -166,35 +180,6 @@ class NeatUtils {
   }
 
   /**
-   * Retuns the innovation number to apply for an "add node mutation".
-   *
-   * @param {AxonGene} axonGene The axonGene where the new neuron will be placed.
-   * @param {AxonGene[]} axonGenes an array of axonGenes of the same species.
-   * @return {number} The innovation number.
-   */
-  static getInnovationFromNeuronMutation(
-    axonGene: AxonGene,
-    axonGenes: AxonGene[]
-  ): number {
-    // Get max innovation number
-    const maxInnovation = NeatUtils.getMaxInnovation(axonGenes);
-    // get back input and output neuron genes
-    const { input, output } = axonGene;
-    // Get all axons that have the same input and output
-    const sameInputAxonGenes = axonGenes.filter((ag) => ag.input === input);
-    const sameOutputAxonGenes = axonGenes.filter((ag) => ag.output === output);
-    let innovation = maxInnovation + 1;
-    // Check if the structural innovation already exists
-    sameInputAxonGenes.forEach((iag) => {
-      const samePair = sameOutputAxonGenes.find(
-        (oag) => oag.input === iag.output
-      );
-      samePair !== undefined && (innovation = iag.innovation);
-    });
-    return innovation;
-  }
-
-  /**
    * Mutate a genome with a "add connexion mutation"
    * Wu must provide the array of genomes of the same species to make innovation tracking
    * and to avoid recurrent mutations.
@@ -208,14 +193,21 @@ class NeatUtils {
     const allAxonGenes = genomes.map((g) => g.axonGenes).flat();
     // Get the max innovation number of all genes
     const maxInnovation = NeatUtils.getMaxInnovation(allAxonGenes);
+
+    // pick an neron to be the input - don't allow to be of type output
+    const input = NeatUtils.randomPick(
+      genome.neuronGenes.filter((n) => n.type !== NeuronType.OUTPUT)
+    );
+    // pick an neron to be the output - don't allow to be of type input
+    const output = NeatUtils.randomPick(
+      genome.neuronGenes.filter((n) => n.type !== NeuronType.INPUT) // don't allow input to be output
+    );
+
     // Create a new Axon by picking random NeuronGene
-    const input = NeatUtils.randomPick(genome.neuronGenes);
-    const output = NeatUtils.randomPick(genome.neuronGenes);
-    // TODO - can connect and retry !!!!
     const axonGene = new AxonGene({ input, output, weight: Math.random() });
     // Do nothing if the new connexion is recurrent
     if (NeatUtils.isConnexionRecurent(axonGene, allAxonGenes)) {
-      return;
+      return; // TODO - retry !!!!
     }
     // Retreive the same innovation in the genes array
     const innovationIndex =
@@ -243,7 +235,117 @@ class NeatUtils {
     return gene;
   }
 
-  static crossoverPopulation(neat: Neat) {}
+  /**
+   * Perfom corssovers on each species of the population to fill
+   * the maximum number of individuals
+   *
+   * @param {Neat} neat A neat object.
+   * @return {Neat} The neat object with a new population.
+   */
+  static crossoverPopulation(neat: Neat) {
+    // First, get the next population size
+    const newSizes = NeatUtils.getPopulationSizeBySpecies(neat);
+    // For each species of the population
+    neat.species.forEach((s, i) => {
+      // As long as the population of the species is not full
+      while (s.length <= newSizes[i]) {
+        // Pick randomly two genomes among th best performers (defined by the rate reproducerRate of configuration)
+        const bestIndex = Math.floor(
+          s.length * neat.configuration.reproducerRate
+        );
+        const bestGenomes = s
+          .sort((a, b) => a.phenotype.fitness - b.phenotype.fitness)
+          .filter((g, i) => i >= bestIndex);
+
+        if (bestGenomes.length > 2) {
+          // Get a new gene from a crossover operation
+          // TODO - retry if the same genomes are picked
+          const newGenome = NeatUtils.crossOverTwoGenomes([
+            NeatUtils.randomPick(bestGenomes),
+            NeatUtils.randomPick(bestGenomes),
+          ]);
+          s.push(newGenome);
+        }
+      }
+    });
+    // return the neat object with updated population
+    return neat;
+  }
+
+  /**
+   * Create a neaw genome from crossing two genomes
+   *
+   * @param {Genome[]} genomes An array of two genomes.
+   * @return {Genome} the created genome.
+   */
+  static crossOverTwoGenomes(genomes: [Genome, Genome]): Genome {
+    if (genomes[0] === genomes[1]) return genomes[0]; // This shouldn't happen
+    // get the index of the best performing genome
+    const besGenomeIndex = genomes.reduce(
+      (acc, cur, i) => (acc <= cur.phenotype.fitness ? i : acc),
+      0
+    );
+    // Get Axon genes in an array indexed by innovation for the two genes.
+    const genes = genomes.map(
+      (g) => NeatUtils.getGenesIndexedByInnovation(g.axonGenes) as AxonGene[]
+    );
+    // Zip the two innovation arrays into one
+    const zipedGenes = NeatUtils.zipArrays<AxonGene>(genes[0], genes[1]);
+    // Create the new Genome to be returned with empty genes with same initial shape
+    const newGenome = new Genome({ shape: genomes[0].shape });
+    // For each innovation of the innovation array
+    zipedGenes.forEach((agPair) => {
+      // Create a reference for the new axonGene
+      let agReference: AxonGene;
+      // If the innovation is present is both genes
+      if (agPair[0] && agPair[1]) {
+        // Pick randomly the gene to copy
+        const r = Math.random() > 0.5 ? 1 : 0;
+        agReference = agPair[r];
+      }
+      // Else pick the best performer structure
+      else {
+        agReference = agPair[besGenomeIndex]; // ! can be undefined
+      }
+
+      if (agReference !== undefined) {
+        // Use this function to make sure neurons and genes are correctly connected
+        NeatUtils.copyAxonGeneToGenome(agReference, newGenome);
+      }
+    });
+    return newGenome;
+  }
+
+  /**
+   * copy an axon gene into a genome.
+   * Make sure that the cloned neurons integrate well in the genome structure
+   *
+   * @param {AxonGene} axonGene the axon gene to copy.
+   * @return {Genome} the genome where the axon gene will be copied.
+   */
+  static copyAxonGeneToGenome(axonGene: AxonGene, genome: Genome) {
+    // Don't forget to clone the reference !
+    const newAxonGene = axonGene.clone();
+    // The clone has also cloned the neurons, let's check if they already exist
+    const existingInputNeuron = genome.neuronGenes.find(
+      (ng) => (ng.innovation = newAxonGene.input.innovation)
+    );
+    const existingOutputNeuron = genome.neuronGenes.find(
+      (ng) => (ng.innovation = newAxonGene.output.innovation)
+    );
+    if (existingInputNeuron) {
+      newAxonGene.input = existingInputNeuron;
+    } else {
+      genome.neuronGenes.push(existingInputNeuron);
+    }
+    if (existingOutputNeuron) {
+      newAxonGene.output = existingOutputNeuron;
+    } else {
+      genome.neuronGenes.push(existingOutputNeuron);
+    }
+    genome.axonGenes.push(newAxonGene);
+    return genome;
+  }
 
   static evaluateCriteria(neat: Neat): boolean {
     return true;
@@ -300,15 +402,33 @@ class NeatUtils {
     });
   }
 
+  /**
+   * Pick randomly an item into an array
+   *
+   * @param {any[]} items An array of items
+   * @return {any} the picked item
+   */
   static randomPick<T = any>(items: T[]) {
     return items[Math.floor(Math.random() * items.length)];
   }
 
+  /**
+   * Return true with a provided probability, else false.
+   *
+   * @param {number} rate The probability to return true
+   * @return {boolean} do you get lucky ?
+   */
   static randomDo<T = any>(rate): boolean {
     return Math.random() > rate;
   }
 
-  static getMaxInnovation(genes: AxonGene[]): number {
+  /**
+   * Return max innovation number found in an array of genes
+   *
+   * @param {IGene[]} genes An array of genes
+   * @return {number} the max innovation number found
+   */
+  static getMaxInnovation(genes: IGene[]): number {
     return genes.reduce(
       (acc, cur) => (acc >= cur.innovation ? acc : cur.innovation),
       0
@@ -316,7 +436,16 @@ class NeatUtils {
   }
 
   /**
-   * Check wether or not a connexion is recurrent within a stack of connexion
+   * Basic implementation of zip method on two arrays
+   *
+   */
+  static zipArrays = <T = any>(a: T[], b: T[]) =>
+    Array(Math.max(b.length, a.length))
+      .fill(0)
+      .map((_, i) => [a[i], b[i]]);
+
+  /**
+   * Check wether or not a connexion is recurrent within a stack of connexions
    *
    * @param {AxonGene} axonGene The connexion gene to test.
    * @param {AxonGene[]} axonGenes An array of all axionGenes.
@@ -409,10 +538,21 @@ class NeatUtils {
    * @return {number} the average weight difference of matching genes.
    */
   static computeAverageWieghtDifference(genomes: [Genome, Genome]): number {
-    return 0;
+    let nbOdMatchingGene = 0;
+    let totalDofference = 0;
+    genomes[0].axonGenes.forEach((ag) => {
+      const twin = genomes[1].axonGenes.find(
+        (_ag) => _ag.innovation === ag.innovation
+      )!;
+      if (twin !== undefined) {
+        nbOdMatchingGene += 1;
+        totalDofference += Math.abs(twin.weight - ag.weight);
+      }
+    });
+    return totalDofference / nbOdMatchingGene;
   }
 
-  static getGenesIndexedByInnovation(genes: AxonGene[]): AxonGene[] {
+  static getGenesIndexedByInnovation(genes: IGene[]): IGene[] {
     let result = [];
     genes.forEach((g) => {
       result[g.innovation] = g;
@@ -422,13 +562,14 @@ class NeatUtils {
 
   /**
    * Compute the adjusted fitness of each phenotype of a Neat project.
+   * The "normal" fitness should have been computed before.
    *
    * @param {Neat} neat A neat object.
    * @return {Neat} A Neat object whose phenotypes have an adjusted fitness updated property.
    */
   static computeAdjustedFitness(phenotype: Phenotype, neat: Neat): number {
-    const { fitnessFunction, distanceConfiguration } = neat.configuration;
-    const fitness = fitnessFunction(phenotype);
+    const { distanceConfiguration } = neat.configuration;
+    const fitness = phenotype.fitness;
     let sumSh = neat.population.reduce((acc, cur) => {
       const d = this.computeDistance({
         genomes: [cur.genome, phenotype.genome],
