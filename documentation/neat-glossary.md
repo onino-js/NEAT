@@ -14,6 +14,8 @@ A Genome is a representation of a phenotype, which is an individual over a popul
 
 ### Neuron or Node
 
+Represent a node of a neural network.
+
 ### Neuron gene or Node gene
 
 A Neuron gene is an encoded representation of a Neuron (or Node).
