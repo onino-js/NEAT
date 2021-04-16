@@ -96,6 +96,7 @@ class Neuron extends Identifiable {
   }
 }
 
+
 /**
  * Class representing an axon (or connexion).
  * @extends Identifiable
