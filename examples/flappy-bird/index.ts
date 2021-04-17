@@ -1,4 +1,4 @@
-import { FlappyBird } from "./../../src/flappy-bird/FlappyBird";
+import { FlappyBird } from "./../../src/games/flappy-bird/FlappyBird";
 import * as tfvis from "@tensorflow/tfjs-vis";
 import * as tf from "@tensorflow/tfjs";
 

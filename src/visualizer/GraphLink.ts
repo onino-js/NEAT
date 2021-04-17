@@ -1,29 +1,20 @@
-import { Iposition } from "./Visualizer";
-import { Axon } from "../Phenotype";
+import { Axon } from "../neat/Phenotype";
+import { INITIAL_GRAPHLINK_STYLES } from "./constants";
+import { GraphNode } from "./GraphNode";
+import { IGraphLinkParams, IGraphLinkStyles, Iposition } from "./models";
 
 /************************************************************/
 /************************class GraphLink**********************/
 /************************************************************/
 
-const INITIAL_GRAPHNODE_STYLES: IGraphLinkStyles = {
-  strokeColor: "green",
-  strokeSize: 2,
-};
-
-interface IGraphLinkStyles {
-  strokeColor: string;
-  strokeSize: number;
-}
-
 /** Class representing a link between two nodes in the canvas */
 class GraphLink {
   public readonly axon: Axon;
   private context: CanvasRenderingContext2D;
-  public x1: number = 0;
-  public y1: number = 0;
-  public x2: number = 0;
-  public y2: number = 0;
-  styles: IGraphLinkStyles = INITIAL_GRAPHNODE_STYLES;
+  public input: GraphNode;
+  public output: GraphNode;
+  public type: "link" | "recurrent" = "link"
+  styles: IGraphLinkStyles = INITIAL_GRAPHLINK_STYLES;
 
   /**
    * Create a graphLink.
@@ -31,14 +22,8 @@ class GraphLink {
    * @param {CanvasRenderingContext2D} _canvas - The cannvas context
    * @param {Partial<GraphLink>} opt - Override parameters
    */
-  constructor(
-    _axon: Axon,
-    _context: CanvasRenderingContext2D,
-    styles?: Partial<IGraphLinkStyles>
-  ) {
-    styles && Object.assign(this.styles, styles);
-    this.axon = _axon;
-    this.context = _context;
+  constructor(params: IGraphLinkParams) {
+    Object.assign<GraphLink, IGraphLinkParams>(this, params);
     this.setStyles();
   }
 
@@ -46,21 +31,52 @@ class GraphLink {
    * Draw the graphNode in the canvas (circle)
    */
   public draw = () => {
-    this.context.beginPath();
-    this.context.lineWidth = this.styles.strokeSize;
-    this.context.moveTo(this.x1, this.y1);
-    this.context.lineTo(this.x2, this.y2);
-    this.context.stroke();
+    if (this.type==="recurrent") {
+      this.drawRecurrent();
+    } else this.drawLink();
   };
 
-  public setStartPoint({ x, y }: Iposition) {
-    this.x1 = x;
-    this.y1 = y;
+  private drawLink() {
+    this.context.beginPath();
+    this.context.strokeStyle="#000000"
+    this.context.lineWidth = this.styles.strokeSize;
+    this.context.moveTo(this.input.x, this.input.y);
+    this.context.lineTo(this.output.x, this.output.y);
+    this.context.stroke();
   }
 
-  public setEndPoint({ x, y }: Iposition) {
-    this.x2 = x;
-    this.y2 = y;
+  private drawRecurrent() {
+    if (this.output === this.input) {
+      this.drawSelfRecurent();
+    } else this.drawDistantRecurent();
+  }
+
+  private drawDistantRecurent() {
+    this.context.beginPath();
+    this.context.lineWidth = 1;
+    this.context.strokeStyle="#FF0000"
+    this.context.moveTo(this.input.x, this.input.y);
+    this.context.lineTo(this.output.x, this.output.y);
+    this.context.stroke();
+    // Draw output link 
+
+    // Draw inupt link
+  }
+
+  private drawSelfRecurent() {
+    const size = 10;
+    const offset = +this.input.styles.nodeRadius;
+    const p1 = [this.input.x + offset, this.input.y - offset];
+    const p2 = [p1[0], p1[1] - size];
+    const p3 = [p2[0] - size, p2[1]];
+    const p4 = [p3[0], p3[1] + size / 2];
+    this.context.beginPath();
+    this.context.lineWidth = this.styles.strokeSize;
+    this.context.moveTo(p1[0], p1[1]);
+    this.context.lineTo(p2[0], p2[1]);
+    this.context.lineTo(p3[0], p3[1]);
+    this.context.lineTo(p4[0], p4[1]);
+    this.context.stroke();
   }
 
   public update() {}

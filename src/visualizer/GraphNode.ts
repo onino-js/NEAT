@@ -1,36 +1,22 @@
-import { NeuronType } from "../models";
-import { Neuron } from "../Phenotype";
+import { NeuronType } from "../neat/models";
+import { Neuron } from "../neat/Phenotype";
+import { INITIAL_GRAPHNODE_STYLES } from "./constants";
+import {  IGraphNodeStyles, IGraphNodeParams } from "./models";
+
 
 /************************************************************/
 /************************class GrapNode**********************/
 /************************************************************/
 
-interface IGraphNodeStyles {
-  nodeRadius: number;
-  inputFillColor: string;
-  hiddenFillColor: string;
-  outputFillColor: string;
-  nodeFillColor: string;
-  nodeActiveFillColor: string;
-}
-
-const INITIAL_GRAPHNODE_STYLES: IGraphNodeStyles = {
-  inputFillColor: "green",
-  hiddenFillColor: "#FFFFFF",
-  outputFillColor: "red",
-  nodeFillColor: "#FFFFFF",
-  nodeActiveFillColor: "#FFFFFF",
-  nodeRadius: 20,
-};
-
 /** Class representing a node displayed in the canvas. */
 class GraphNode {
   public readonly neuron: Neuron;
-  public fill: string = "#FFFFFF";
   public x: number;
   public y: number;
   public styles: IGraphNodeStyles = INITIAL_GRAPHNODE_STYLES;
+  public nodeIndex: number;
   private context: CanvasRenderingContext2D;
+  public fill: string;
 
   /**
    * Create a graphNode.
@@ -38,14 +24,8 @@ class GraphNode {
    * @param {CanvasRenderingContext2D} _canvas - The cannvas context
    * @param {Partial<GraphNode>} opt - Override parameters
    */
-  constructor(
-    _neuron: Neuron,
-    _context: CanvasRenderingContext2D,
-    styles?: Partial<IGraphNodeStyles>
-  ) {
-    styles && Object.assign(this.styles, styles);
-    this.neuron = _neuron;
-    this.context = _context;
+  constructor(params: IGraphNodeParams) {
+    Object.assign<GraphNode, IGraphNodeParams>(this, params);
     this.setColors();
   }
 
@@ -64,7 +44,17 @@ class GraphNode {
       true
     );
     this.context.fill();
+    this.drawIndex();
   };
+
+  private drawIndex() {
+    if (this.nodeIndex !== undefined) {
+      this.context.font = '15px sans-serif';
+      this.context.textAlign = "center";
+      this.context.strokeStyle = "#000000";
+      this.context.strokeText(this.nodeIndex.toString(), this.x, this.y + 5);
+    }
+  }
 
   /**
    * Set position of the graphNode in the canvas

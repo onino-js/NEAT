@@ -1,6 +1,7 @@
 import { Phenotype, Neuron, Axon } from "./Phenotype";
 import { AxonGene, Genome, NeuronGene } from "./Genome";
 import {
+  ActivationType,
   IdistanceConfiguration,
   IGene,
   INeatConfiguration,
@@ -455,17 +456,42 @@ class NeatUtils {
     axonGene: AxonGene,
     axonGenes: AxonGene[]
   ): boolean {
-    let input = axonGene.input;
+    let output = axonGene.output;
     let stack = [axonGene];
     while (stack.length !== 0) {
       let connection = stack.shift();
-      if (connection.output === input) return true;
+      if (connection.input === output) return true;
       stack.push(
-        ...axonGenes.filter((gene) => gene.input === connection.output)
+        ...axonGenes.filter((gene) => gene.output === connection.input)
       );
     }
     return false;
   }
+
+    /**
+   * Check wether or not a connexion is recurrent within a stack of connexions
+   *
+   * @param {AxonGene} axonGene The connexion gene to test.
+   * @param {AxonGene[]} axonGenes An array of all axionGenes.
+   * @return {boolean} true if the connexion is recurrent, else false.
+   */
+     static isLinkRecurent(
+      axon: Axon,
+      axons: Axon[]
+    ): boolean {
+      let max = 200;
+      let input = axon.input;
+      let stack = [axon];
+      while (stack.length !== 0 && max>0) {
+        let connection = stack.shift();
+        if (input === connection.output) {return true;}
+        stack.push(
+          ...axons.filter((axon) => axon.input === connection.output && axon.output.type!==NeuronType.OUTPUT)
+        );
+        max--
+      }
+      return false;
+    }
 
   /**
    * Compute the distance between two Genomes using
@@ -668,6 +694,20 @@ class NeatUtils {
       });
     });
     return new Phenotype(genome, { neurons, axons, shape });
+  };
+
+  static activationFunctions = {
+    [ActivationType.SIGMOID]: function (input: number): number {
+      return 1 / (1 + Math.exp(-input));
+    },
+
+    [ActivationType.TANH]: function (input: number): number {
+      return Math.tanh(input);
+    },
+
+    [ActivationType.RELU]: function (input: number): number {
+      return input > 0 ? input : 0;
+    },
   };
 }
 

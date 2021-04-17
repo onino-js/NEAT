@@ -1,34 +1,10 @@
-import { Phenotype } from "../Phenotype";
-import { GraphNode, IGraphNodeStyles } from "./GraphNode";
+import { Phenotype } from "../neat/Phenotype";
+import { GraphNode } from "./GraphNode";
 import { GraphLink } from "./GraphLink";
-import { NeuronType } from "../models";
-
-const INITIAL_VISUALIZER_STYLES = {
-  width: 640,
-  height: 480,
-  nodeRadius: 20,
-  backgrounColor: "#AAA",
-  NodeFillColor: "#FFF",
-  NodeActiveFillColor: "#000",
-  padding: [20, 20],
-  minGap: 100,
-};
-
-interface IvisualizerStyles extends IGraphNodeStyles {
-  backgrounColor: string;
-  width: number;
-  height: number;
-  nodeRadius: number;
-  NodeFillColor: string;
-  NodeActiveFillColor: string;
-  padding: [number, number];
-  minGap: number;
-}
-
-export interface Iposition {
-  x: number;
-  y: number;
-}
+import { NeuronType } from "../neat/models";
+import { IvisualizerStyles, Iposition } from "./models";
+import { INITIAL_VISUALIZER_STYLES } from "./constants";
+import { NeatUtils } from "./../neat/NeatUtils";
 
 export class Visualizer {
   public canvasRef: HTMLCanvasElement;
@@ -62,7 +38,7 @@ export class Visualizer {
       this.canvasContext = el.getContext("2d");
       el.width = this.styles.width;
       el.height = this.styles.height;
-      el.style.backgroundColor = this.styles.backgrounColor;
+      el.style.backgroundColor = this.styles.backgroundColor;
     }
     if (this.phenotype) {
       this.draw();
@@ -116,28 +92,36 @@ export class Visualizer {
   }
 
   public addGraphNodes = () => {
-    this.phenotype.neurons.forEach((n, neuronIndex) => {
-      const pos = this._grid[neuronIndex];
-      const graphNode = new GraphNode(n, this.canvasContext, {
-        nodeRadius: this.styles.nodeRadius,
+    this.phenotype.neurons.forEach((neuron, nodeIndex) => {
+      const { x, y } = this._grid[nodeIndex];
+      const graphNode = new GraphNode({
+        neuron,
+        context: this.canvasContext,
+        nodeIndex,
+        x,
+        y,
       });
-      graphNode.setPosition(pos);
       this.graphNodes.push(graphNode);
     });
   };
 
   public addGraphLinks() {
     this.phenotype.axons.forEach((axon, axonIndex) => {
-      const graphLink = new GraphLink(axon, this.canvasContext);
       // retreive graphnodes
-      const { x: x1, y: y1 } = this.graphNodes.find(
-        (gn) => gn.neuron.id === axon.input.id
+      const input = this.graphNodes.find(
+        (gn) => gn.neuron === axon.input
       );
-      const { x: x2, y: y2 } = this.graphNodes.find(
-        (gn) => gn.neuron.id === axon.output.id
+      const output = this.graphNodes.find(
+        (gn) => gn.neuron === axon.output
       );
-      graphLink.setStartPoint({ x: x1, y: y1 });
-      graphLink.setEndPoint({ x: x2, y: y2 });
+      const isRecurrent=NeatUtils.isLinkRecurent(axon, this.phenotype.axons);
+      const graphLink = new GraphLink({
+        axon,
+        context: this.canvasContext,
+        input,
+        output,
+        type:isRecurrent?"recurrent":"link"
+      });
       this.graphLinks.push(graphLink);
     });
   }
@@ -174,6 +158,10 @@ export class Visualizer {
   public setStyles(styles: Partial<IvisualizerStyles>) {
     Object.assign(this.styles, styles);
     this.draw();
+  }
+
+  public getNeuronByGraphIndex(index:number){
+    return this.graphNodes.find(gn=>gn.nodeIndex===index).neuron
   }
 }
 

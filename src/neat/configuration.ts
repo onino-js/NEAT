@@ -1,4 +1,4 @@
-import { INeatConfiguration } from "./models";
+import { ActivationType, INeatConfiguration } from "./models";
 
 // The default configuration object.
 // The settings are pretty the same than the original paper
@@ -22,4 +22,6 @@ export const INITIAL_CONFIGURATION: INeatConfiguration = {
     compatibilityThreshold: 1.5,
   },
   fitnessFunction: (input) => 0,
+  activationFunction: ActivationType.RELU,
+  recursive:false
 };

@@ -1,6 +1,7 @@
 import { AxonGene, Genome, NeuronGene } from "./Genome";
 import { NeuronType } from "./models";
-import { Identifiable } from "./utils/Identifiable";
+import { IActivationFunction } from "./models";
+import { Identifiable } from "./../utils/Identifiable";
 
 /**
  * Class representing a phenotype.
@@ -12,7 +13,6 @@ class Phenotype extends Identifiable {
   public axons: Axon[] = [];
   public fitness: number;
   public adjustedFitness: number;
-  public outputValues: number[] = [];
   public shape?: number[];
 
   /**
@@ -32,25 +32,83 @@ class Phenotype extends Identifiable {
     this.genome.neuronGenes.forEach(({ neuron }) => this.neurons.push(neuron));
   }
 
-  public feedForward(inputs: number[]): number[] {
-    // Get input neurons and assign input values
-    this.inputNodes
-      .sort((a, b) => a.neuronGene.innovation - b.neuronGene.innovation)
-      .forEach((n, i) => (n.value = inputs[i]));
+  
+  /**
+   * Feed the network forward with input values and return output values.
+   * @param {number[]} inputs - An array of input values.
+   * @returns {number[]} - the output values.
+   */
+  public feedForward(
+    inputs: number[],
+    activationFunction: IActivationFunction
+  ): number[] {
+    // Check input validity
+    this.checkInputs(inputs);
+    // Refresh input values and activation status of each neuron
+    this.refresh(inputs);
     // Create a stack of all Axons whose input are input neurons
     const stack = this.axons.filter((a) => a.input.type === NeuronType.INPUT);
-    while (stack.length) {}
-
     // While length of stack is not null
-    // Shift the stack and take the first Axon
-    // Get the output Neuron of that axon
-    // Feed the neuron
-
+    while (stack.length) {
+      // Shift the stack and take the first Axon
+      const axon = stack.shift();
+      // Check if the output neuron of this axon has already been activated
+      if (axon.output.activated) return; // return if yes
+      // If no, feed the neuron with all its inputs values
+      this.axons
+        .filter((a) => a.output === axon.output)
+        .forEach((a) => a.feedForward());
+      // And activate the neuron
+      axon.output.activate(activationFunction);
+      // Get all outpout Axons of this neuron and push it to stack
+      this.axons
+        .filter((a) => a.input === axon.output)
+        .forEach((_a) => stack.push(_a));
+    }
     return this.outputValues;
+  }
+
+   /**
+   * Feed the network forward with input values and return output values.
+   * Reset the network before. This function should be used instead of feedForward for non recursive networks
+   * @param {number[]} inputs - An array of input values.
+   * @returns {number[]} - the output values.
+   */
+  public activate(
+    inputs: number[],
+    activationFunction: IActivationFunction
+  ): number[] {
+    this.reset();
+    return this.feedForward(inputs, activationFunction);
   }
 
   private reset() {
     this.neurons.forEach((n) => (n.value = 0));
+  }
+
+  private refresh(inputs: number[]) {
+    this.neurons.forEach((n) => (n.activated = false));
+    // Get input neurons and assign input values
+    this.inputNodes
+      .sort((a, b) => a.neuronGene.innovation - b.neuronGene.innovation)
+      .forEach((n, i) => (n.value = inputs[i]));
+  }
+
+  private checkInputs(inputs: number[]){
+    // Check number of inputs
+    if(inputs.length !== this.inputNodes.length){
+      throw new Error(`The number of inputs provided (${inputs.length}) is not equal to the number of input nodes (${this.inputNodes.length})`)
+    }
+     // Check input values
+    inputs.forEach(i=>{
+      if(i<0 || i>1){
+        console.warn("Inputs are not normalized")
+      }
+    })
+  }
+
+  get outputValues(): number[] {
+    return this.outputNodes.map((n) => n.value);
   }
 
   get inputNodes() {
@@ -79,9 +137,10 @@ class Neuron extends Identifiable {
   public value: number;
   public active: boolean;
   public type: NeuronType;
-  public inputCount: number;
-  public inputTimes: number;
-  public replacedAxon: Axon;
+  public activated: boolean;
+  // public inputCount: number;
+  // public inputTimes: number;
+  // public replacedAxon: Axon;
   public layerIndex?: number;
 
   /**
@@ -94,8 +153,12 @@ class Neuron extends Identifiable {
     this.neuronGene = neuronGene;
     Object.assign<Neuron, Partial<Neuron>>(this, opt);
   }
-}
 
+  public activate(activationFunction: IActivationFunction) {
+    this.value = activationFunction(this.value);
+    this.activated = true;
+  }
+}
 
 /**
  * Class representing an axon (or connexion).

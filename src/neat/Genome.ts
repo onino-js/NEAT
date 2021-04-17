@@ -1,7 +1,7 @@
 import { IGene, NeuronType } from "./models";
 import { NeatUtils } from "./NeatUtils";
 import { Axon, Neuron, Phenotype } from "./Phenotype";
-import { Identifiable } from "./utils/Identifiable";
+import { Identifiable } from "./../utils/Identifiable";
 
 /**
  * Class representing a genome.

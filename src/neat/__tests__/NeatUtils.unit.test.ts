@@ -175,8 +175,8 @@ describe("class NeatUtils", () => {
       neat.species = [species];
       NeatUtils.speciatePopulation(neat);
       expect(neat.species.length).toEqual(2);
-      expect(neat.species[0].length).toEqual(25);
-      expect(neat.species[1].length).toEqual(75);
+      expect(neat.species[0].length).toEqual(75);
+      expect(neat.species[1].length).toEqual(25);
     });
   });
 });

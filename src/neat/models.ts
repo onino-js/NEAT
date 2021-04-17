@@ -7,6 +7,16 @@ export enum NeuronType {
   OUTPUT = "OUTPUT",
 }
 
+export enum ActivationType {
+  TANH = "TANH",
+  SIGMOID = "SIGMOID",
+  RELU = "RELU",
+}
+
+export interface IActivationFunction {
+  (input: number): number;
+}
+
 export interface ImutationRates {
   addNeuronGene: number; // Mutation rate for adding a new neuron gene in the genome
   addAxonGene: number; // Mutation rate for adding a new axon gene in the genome
@@ -24,6 +34,8 @@ export interface INeatConfiguration {
   shape: [number, number, number]; // The initial shape of the network. The first number is the number of inputs, then hiddens and outputs.
   distanceConfiguration: IdistanceConfiguration; // A object containing informations for the distance calculation. The distance between phenotypes is used to perform speciation.
   fitnessFunction: IfitnessFunction;
+  activationFunction: ActivationType;
+  recursive: boolean; // Wether or not recursive connexions are allowed
 }
 
 export interface IdistanceConfiguration {
@@ -38,3 +50,4 @@ export interface IfitnessFunction {
 }
 
 export type IGene = NeuronGene | AxonGene;
+
