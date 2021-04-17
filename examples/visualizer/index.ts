@@ -11,11 +11,12 @@ const main = () => {
     const axonGene=new AxonGene({input:n.neuronGene, output:n.neuronGene});
     const axon= new Axon(axonGene, {input:n, output:n})
     phenotype.axons.push(axon);
-  })
+  });
   const a=new AxonGene();
   const n1 = phenotype.neurons[8];
   const n2 = phenotype.neurons[11];
-  const ax = new Axon(a, {input:n2, output:n1})
+  const ax = new Axon(a, {input:n2, output:n1});
+  
   phenotype.axons.push(ax);
   const visualizer = new Visualizer("canvas", phenotype);
 
