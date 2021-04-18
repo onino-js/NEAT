@@ -3,7 +3,7 @@ import { ActivationType, INeatConfiguration } from "./models";
 // The default configuration object.
 // The settings are pretty the same than the original paper
 export const INITIAL_CONFIGURATION: INeatConfiguration = {
-  populationSize: 200,
+  populationSize: 20,
   survivalRate: 0.5,
   reproducerRate: 0.4,
   mutationRates: {
@@ -23,5 +23,5 @@ export const INITIAL_CONFIGURATION: INeatConfiguration = {
   },
   fitnessFunction: (input) => 0,
   activationFunction: ActivationType.RELU,
-  recursive:false
+  recursive: false,
 };

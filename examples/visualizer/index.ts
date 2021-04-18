@@ -10,13 +10,13 @@ const main = () => {
     .filter((n) => n.layerIndex === 2)
     .forEach((n) => {
       const axon = new Axon({ input: n, output: n }, true);
-      phenotype.axons.push(axon);
+      //   phenotype.axons.push(axon);
     });
   const n1 = phenotype.neurons[8];
   const n2 = phenotype.neurons[11];
   const ax = new Axon({ input: n2, output: n1, weight: 1 });
 
-  // phenotype.axons.push(ax);
+  //  phenotype.axons.push(ax);
   const visualizer = new Visualizer("canvas", phenotype);
 
   phenotype.setUpdateCallback(() => visualizer.refresh());

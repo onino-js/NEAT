@@ -22,16 +22,23 @@ class Phenotype extends Identifiable {
    * @param {Genome} genome - The genome of the phenotype.
    * @param {Partial<Genome>} opt - An optional parameter to set the properties.
    */
-  constructor(genome: Genome, opt?: Partial<Phenotype>) {
+  constructor(opt?: Partial<Phenotype>) {
     super();
-    this.genome = genome;
-    this.update();
     Object.assign(this, opt);
+    opt.genome && this.build();
   }
 
-  public update() {
-    this.genome.axonGenes.forEach(({ axon }) => this.axons.push(axon));
-    this.genome.neuronGenes.forEach(({ neuron }) => this.neurons.push(neuron));
+  private build() {
+    this.genome.axonGenes.forEach((axonGene) =>
+      this.axons.push(new Axon({ axonGene }))
+    );
+    this.genome.neuronGenes.forEach((neuronGene) =>
+      this.neurons.push(new Neuron({ neuronGene }))
+    );
+    this.axons.forEach((a) => {
+      a.input = this.neurons.find((n) => n.neuronGene === a.axonGene.input);
+      a.output = this.neurons.find((n) => n.neuronGene === a.axonGene.output);
+    });
   }
 
   /**
@@ -172,10 +179,12 @@ class Neuron extends Identifiable {
    * @param {Genome} neuronGene - The neuron gene of the neuron.
    * @param {Partial<Neuron>} opt - An optional parameter to set the properties.
    */
-  constructor(neuronGene: NeuronGene, opt?: Partial<Neuron>) {
+  constructor(opt?: Partial<Neuron>) {
     super();
-    this.neuronGene = neuronGene;
-    this.type = neuronGene.type;
+    if (opt?.neuronGene) {
+      this.neuronGene = opt.neuronGene;
+      this.type = opt.neuronGene.type;
+    }
     Object.assign<Neuron, Partial<Neuron>>(this, opt);
   }
 

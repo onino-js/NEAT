@@ -10,7 +10,7 @@ import { Identifiable } from "./../utils/Identifiable";
 class Genome extends Identifiable {
   public neuronGenes: NeuronGene[] = [];
   public axonGenes: AxonGene[] = [];
-  public phenotype: Phenotype;
+  //public phenotype: Phenotype;
   public shape: number[];
 
   /**
@@ -21,7 +21,11 @@ class Genome extends Identifiable {
     super();
     Object.assign<Genome, Partial<Genome>>(this, opt);
     opt?.shape && this.initialize(opt.shape);
-    this.phenotype = new Phenotype(this);
+    // this.phenotype = new Phenotype(this);
+  }
+
+  get phenotype() {
+    return new Phenotype({ genome: this });
   }
 
   /**
@@ -75,7 +79,7 @@ class Genome extends Identifiable {
  */
 class NeuronGene extends Identifiable {
   public type: NeuronType;
-  public innovation: number;
+  public innovation: number = 0;
   public layerIndex?: number;
   public neuron: Neuron;
 
@@ -86,7 +90,7 @@ class NeuronGene extends Identifiable {
   constructor(opt?: Partial<NeuronGene>) {
     super();
     Object.assign<NeuronGene, Partial<NeuronGene>>(this, opt);
-    this.neuron = new Neuron(this);
+    this.neuron = new Neuron({ neuronGene: this });
   }
   /**
    * Return a copy of the NeuronGene
@@ -105,7 +109,7 @@ class AxonGene extends Identifiable {
   public active: boolean;
   public input: NeuronGene;
   public output: NeuronGene;
-  public innovation: number;
+  public innovation: number = 0;
   public axon: Axon;
 
   /**

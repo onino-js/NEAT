@@ -87,11 +87,14 @@ class NeatUtils {
   static speciatePopulation(neat: Neat): Genome[][] {
     const { distanceConfiguration } = neat.configuration;
     // Pick random representant of actual species
+    // console.log(neat.species);
     const representants = neat.species.map((s) => NeatUtils.randomPick(s));
     // Create a new Species array
-    const newSpecies = representants.map((r) => []);
+    const newSpecies = representants.map((r) => [r]);
     // Sort population in a new species array
     neat.population.forEach((p) => {
+      // Do nothing if it is a representant (already sorted in species)
+      if (representants.findIndex((r) => r === p.genome) !== -1) return;
       let rIndex = 0; // The representant index
       while (rIndex < representants.length) {
         // Compute distance between the representant and the tested genome
@@ -143,16 +146,18 @@ class NeatUtils {
    * We must provide the array of genomes of the same species to make innovation tracking.
    *
    * @param {Genome} genome The genome to mutate.
-   * @param {Genome[]} genomes TAn array of genomes of the same species.
+   * @param {Genome[]} genomes An array of genomes of the same species.
    * @return {Genome[]} An array of species.
    */
   static addNeuronMutation(genome: Genome, genomes: Genome[]) {
     // Get all axonGenes in the concerned species
     const allAxonGenes = genomes.map((g) => g.axonGenes).flat();
+    if (allAxonGenes.length === 0) return;
     // Pick randomly an existing axon gene.
     const axonToMutate = NeatUtils.randomPick(genome.axonGenes);
     // Disable the connexion
     axonToMutate.active = false;
+    const { input, output } = axonToMutate;
     // Try to find an axonGene in all genes with same input and output innovations
     const sameAxonGene = allAxonGenes.find(
       (ag) =>
@@ -165,7 +170,6 @@ class NeatUtils {
     // create a new neuron gene
     const neuronGene = new NeuronGene({ innovation });
     // create two new axons following instructions given in "#Node Mutation" of the documentation (neat-implementation)
-    const { input, output } = axonToMutate;
     const axonGeneIn = new AxonGene({
       weight: 1,
       output: neuronGene,
@@ -199,7 +203,6 @@ class NeatUtils {
     const allAxonGenes = genomes.map((g) => g.axonGenes).flat();
     // Get the max innovation number of all genes
     const maxInnovation = NeatUtils.getMaxInnovation(allAxonGenes);
-
     // pick an neron to be the input - don't allow to be of type output
     const input = NeatUtils.randomPick(
       genome.neuronGenes.filter((n) => n.type !== NeuronType.OUTPUT)
@@ -208,11 +211,14 @@ class NeatUtils {
     const output = NeatUtils.randomPick(
       genome.neuronGenes.filter((n) => n.type !== NeuronType.INPUT)
     );
-
     // Create a new Axon by picking random NeuronGene
     const axonGene = new AxonGene({ input, output, weight: Math.random() });
     // Do nothing if the new connexion is recurrent
     if (NeatUtils.isConnexionRecurent(axonGene, allAxonGenes)) {
+      return; // TODO - retry !!!!
+    }
+    // Do nothing if the new connexion already exists
+    if (allAxonGenes.find((ax) => ax.input === input && ax.output === output)) {
       return; // TODO - retry !!!!
     }
     // Retreive the same innovation in the genes array
@@ -237,6 +243,7 @@ class NeatUtils {
    */
   static changeWeightMutation(genome: Genome) {
     const gene = NeatUtils.randomPick(genome.axonGenes);
+    if (!gene) return;
     gene.weight = Math.random();
     return gene;
   }
@@ -354,7 +361,7 @@ class NeatUtils {
   }
 
   static evaluateCriteria(neat: Neat): boolean {
-    return true;
+    return false;
   }
 
   static createNewPopulation(neat: Neat) {
@@ -424,8 +431,8 @@ class NeatUtils {
    * @param {number} rate The probability to return true
    * @return {boolean} do you get lucky ?
    */
-  static randomDo<T = any>(rate): boolean {
-    return Math.random() > rate;
+  static randomDo(rate: number): boolean {
+    return Math.random() < rate;
   }
 
   /**
@@ -577,13 +584,13 @@ class NeatUtils {
     genomes[0].axonGenes.forEach((ag) => {
       const twin = genomes[1].axonGenes.find(
         (_ag) => _ag.innovation === ag.innovation
-      )!;
+      );
       if (twin !== undefined) {
         nbOdMatchingGene += 1;
         totalDofference += Math.abs(twin.weight - ag.weight);
       }
     });
-    return totalDofference / nbOdMatchingGene;
+    return nbOdMatchingGene ? totalDofference / nbOdMatchingGene : 0;
   }
 
   static getGenesIndexedByInnovation(genes: IGene[]): IGene[] {
@@ -684,7 +691,7 @@ class NeatUtils {
             ? NeuronType.HIDDEN
             : NeuronType.OUTPUT;
         const neuronGene = new NeuronGene({ type });
-        const neuron = new Neuron(neuronGene, { type, layerIndex });
+        const neuron = new Neuron({ neuronGene, type, layerIndex });
         neurons.push(neuron);
       });
     });
@@ -705,7 +712,7 @@ class NeatUtils {
         axons.push(axon);
       });
     });
-    return new Phenotype(genome, { neurons, axons, shape });
+    return new Phenotype({ genome, neurons, axons, shape });
   };
 
   static activationFunctions = {
