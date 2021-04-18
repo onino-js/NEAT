@@ -20,9 +20,14 @@ class NeatUtils {
    * @param {Neat} neat A neat object.
    * @return {Genome[]} the population as an array of genomes
    */
-  static initializePopulation(neat: Neat): Genome[] {
-    neat.species = [[]];
-    return [];
+  static initializePopulation(neat: Neat): Genome[][] {
+    const initialSpecies: Genome[][] = [[]];
+    new Array(neat.configuration.populationSize).fill(0).forEach(() => {
+      const newGenome = new Genome({ shape: neat.configuration.shape });
+      initialSpecies[0].push(newGenome);
+    });
+    neat.species = initialSpecies;
+    return initialSpecies;
   }
 
   /**
@@ -181,7 +186,7 @@ class NeatUtils {
   }
 
   /**
-   * Mutate a genome with a "add connexion mutation"
+   * Mutate a genome with an "add connexion mutation"
    * Wu must provide the array of genomes of the same species to make innovation tracking
    * and to avoid recurrent mutations.
    *
@@ -201,7 +206,7 @@ class NeatUtils {
     );
     // pick an neron to be the output - don't allow to be of type input
     const output = NeatUtils.randomPick(
-      genome.neuronGenes.filter((n) => n.type !== NeuronType.INPUT) // don't allow input to be output
+      genome.neuronGenes.filter((n) => n.type !== NeuronType.INPUT)
     );
 
     // Create a new Axon by picking random NeuronGene
@@ -282,7 +287,7 @@ class NeatUtils {
   static crossOverTwoGenomes(genomes: [Genome, Genome]): Genome {
     if (genomes[0] === genomes[1]) return genomes[0]; // This shouldn't happen
     // get the index of the best performing genome
-    const besGenomeIndex = genomes.reduce(
+    const bestGenomeIndex = genomes.reduce(
       (acc, cur, i) => (acc <= cur.phenotype.fitness ? i : acc),
       0
     );
@@ -306,7 +311,7 @@ class NeatUtils {
       }
       // Else pick the best performer structure
       else {
-        agReference = agPair[besGenomeIndex]; // ! can be undefined
+        agReference = agPair[bestGenomeIndex]; // ! can be undefined
       }
 
       if (agReference !== undefined) {
@@ -468,30 +473,33 @@ class NeatUtils {
     return false;
   }
 
-    /**
+  /**
    * Check wether or not a connexion is recurrent within a stack of connexions
    *
    * @param {AxonGene} axonGene The connexion gene to test.
    * @param {AxonGene[]} axonGenes An array of all axionGenes.
    * @return {boolean} true if the connexion is recurrent, else false.
    */
-     static isLinkRecurent(
-      axon: Axon,
-      axons: Axon[]
-    ): boolean {
-      let max = 200;
-      let input = axon.input;
-      let stack = [axon];
-      while (stack.length !== 0 && max>0) {
-        let connection = stack.shift();
-        if (input === connection.output) {return true;}
-        stack.push(
-          ...axons.filter((axon) => axon.input === connection.output && axon.output.type!==NeuronType.OUTPUT)
-        );
-        max--
+  static isLinkRecurent(axon: Axon, axons: Axon[]): boolean {
+    let max = 200;
+    let input = axon.input;
+    let stack = [axon];
+    while (stack.length !== 0 && max > 0) {
+      let connection = stack.shift();
+      if (input === connection.output) {
+        return true;
       }
-      return false;
+      stack.push(
+        ...axons.filter(
+          (axon) =>
+            axon.input === connection.output &&
+            axon.output.type !== NeuronType.OUTPUT
+        )
+      );
+      max--;
     }
+    return false;
+  }
 
   /**
    * Compute the distance between two Genomes using
@@ -655,9 +663,10 @@ class NeatUtils {
    *  Nodes of a layer is connected to all nodes of next layer
    *
    * @param {number[]} shape A shape object.
+   * @param {boolean} randomWeight apply random weight on axons creation or not.
    * @return {Phenotype} A perceptron network
    */
-  static generatePerceptron = (shape: number[]) => {
+  static generatePerceptron = (shape: number[], randomWeight?: boolean) => {
     NeatUtils.checkShape(shape);
     const genome = new Genome({ shape });
     let neurons: Neuron[] = [];
@@ -686,10 +695,13 @@ class NeatUtils {
       const nextLayerNeurons = neurons.filter(
         (n) => n.layerIndex === neuron.layerIndex + 1
       );
-      // create a connexion with each neuron of next layer
+      // create a connexion with each neuron of next layers
       nextLayerNeurons.forEach((n) => {
         const axonGene = new AxonGene();
-        const axon = new Axon(axonGene, { input: neuron, output: n });
+        const axon = new Axon(
+          { axonGene, input: neuron, output: n },
+          randomWeight
+        );
         axons.push(axon);
       });
     });

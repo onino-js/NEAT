@@ -14,11 +14,12 @@ export class Neat {
    * Create a Neat instance.
    * @param {INeatConfiguration} _configuration - A configuration object.
    */
-  constructor(_configuration?: Partial<INeatConfiguration>) {
+  constructor(shape: number[], _configuration?: Partial<INeatConfiguration>) {
+    // Apply user defined configuration if any
+    _configuration &&
+      Object.assign(this.configuration, _configuration, { shape });
     //Throw error if configuration is not acceptable
-    _configuration && NeatUtils.checkConfiguration(_configuration);
-    // Apply user defined configuration
-    Object.assign(this.configuration, _configuration);
+    NeatUtils.checkConfiguration(this.configuration);
   }
 
   // Return population as a flat array of phenotypes
@@ -36,8 +37,10 @@ export class Neat {
    */
   public run() {
     NeatUtils.initializePopulation(this); // The population is initialized within one species
+    console.log(this.species);
     while (!this.finished) {
       NeatUtils.computeFitness(this); // Fitnesses and asjusted fitnesses are coputed
+      console.log(this.species);
       NeatUtils.speciatePopulation(this); // Genomes are sorted into species in the species property
       NeatUtils.selectPopulation(this); // Some phenotypes didn't survived, the species arrays are truncated
       NeatUtils.mutatePopulation(this); // Some genomes have mutated through one  of the three mutation type

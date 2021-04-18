@@ -1,8 +1,7 @@
 import { NeuronType } from "../neat/models";
 import { Neuron } from "../neat/Phenotype";
 import { INITIAL_GRAPHNODE_STYLES } from "./constants";
-import {  IGraphNodeStyles, IGraphNodeParams } from "./models";
-
+import { IGraphNodeStyles, IGraphNodeParams } from "./models";
 
 /************************************************************/
 /************************class GrapNode**********************/
@@ -45,14 +44,29 @@ class GraphNode {
     );
     this.context.fill();
     this.drawIndex();
+    this.drawValue();
   };
 
   private drawIndex() {
     if (this.nodeIndex !== undefined) {
-      this.context.font = '15px sans-serif';
+      this.context.font = "10px sans-serif";
       this.context.textAlign = "center";
       this.context.strokeStyle = "#000000";
-      this.context.strokeText(this.nodeIndex.toString(), this.x, this.y + 5);
+      this.context.strokeText(
+        this.nodeIndex.toString(),
+        this.x - this.styles.nodeRadius,
+        this.y - this.styles.nodeRadius
+      );
+    }
+  }
+
+  private drawValue() {
+    if (this.neuron.value !== undefined) {
+      this.context.font = "15px sans-serif";
+      this.context.textAlign = "center";
+      this.context.strokeStyle = "#000000";
+      const val = (Math.round(this.neuron.value * 10) / 10).toString();
+      this.context.strokeText(val, this.x, this.y + 5);
     }
   }
 

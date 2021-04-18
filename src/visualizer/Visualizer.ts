@@ -108,19 +108,15 @@ export class Visualizer {
   public addGraphLinks() {
     this.phenotype.axons.forEach((axon, axonIndex) => {
       // retreive graphnodes
-      const input = this.graphNodes.find(
-        (gn) => gn.neuron === axon.input
-      );
-      const output = this.graphNodes.find(
-        (gn) => gn.neuron === axon.output
-      );
-      const isRecurrent=NeatUtils.isLinkRecurent(axon, this.phenotype.axons);
+      const input = this.graphNodes.find((gn) => gn.neuron === axon.input);
+      const output = this.graphNodes.find((gn) => gn.neuron === axon.output);
+      const isRecurrent = NeatUtils.isLinkRecurent(axon, this.phenotype.axons);
       const graphLink = new GraphLink({
         axon,
         context: this.canvasContext,
         input,
         output,
-        type:isRecurrent?"recurrent":"link"
+        type: isRecurrent ? "recurrent" : "link",
       });
       this.graphLinks.push(graphLink);
     });
@@ -160,8 +156,8 @@ export class Visualizer {
     this.draw();
   }
 
-  public getNeuronByGraphIndex(index:number){
-    return this.graphNodes.find(gn=>gn.nodeIndex===index).neuron
+  public getNeuronByGraphIndex(index: number) {
+    return this.graphNodes.find((gn) => gn.nodeIndex === index).neuron;
   }
 }
 

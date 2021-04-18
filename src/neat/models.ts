@@ -31,7 +31,7 @@ export interface INeatConfiguration {
   reproducerRate: number; // The rate of indivudals allowed to reproduce through crossover within a species (using fitness to select among the X% performers).
   mutationRates: ImutationRates; // An object representing mutation rates for each kind of mutation
   maxEpoch: number; // The maximum number of iteration of the NEAT algorithm
-  shape: [number, number, number]; // The initial shape of the network. The first number is the number of inputs, then hiddens and outputs.
+  shape: number[]; // The initial shape of the network. The first number is the number of inputs, then hiddens and outputs.
   distanceConfiguration: IdistanceConfiguration; // A object containing informations for the distance calculation. The distance between phenotypes is used to perform speciation.
   fitnessFunction: IfitnessFunction;
   activationFunction: ActivationType;
@@ -50,4 +50,3 @@ export interface IfitnessFunction {
 }
 
 export type IGene = NeuronGene | AxonGene;
-

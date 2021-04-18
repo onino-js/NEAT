@@ -14,15 +14,15 @@ export const INITIAL_GRAPHNODE_STYLES: IGraphNodeStyles = {
 };
 
 export const INITIAL_GRAPHLINK_STYLES: IGraphLinkStyles = {
-  strokeColor: "green",
-  strokeSize: 2,
+  strokeColor: "#000000",
+  strokeSize: 1,
 };
 
 export const INITIAL_VISUALIZER_STYLES: IvisualizerStyles = {
   backgroundColor: "#EEEEEE",
   width: 640,
   height: 480,
-  padding: [20, 20],
+  padding: [60, 60],
   minGap: 100,
   nodeStyles: INITIAL_GRAPHNODE_STYLES,
   linkStyles: INITIAL_GRAPHLINK_STYLES,

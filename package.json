@@ -6,7 +6,8 @@
   "scripts": {
     "build": " rm -rf ./build && tsc",
     "start:visualizer": "parcel ./examples/visualizer/index.html --out-dir ./examples/build/visualizer",
-    "start:flappy-bird": "parcel ./examples/games/flappy-bird/index.html --out-dir ./examples/build/flappy-bird",
+    "start:flappy-bird": "parcel ./examples/flappy-bird/index.html --out-dir ./examples/build/flappy-bird",
+    "start:xor": "parcel ./examples/xor/index.html --out-dir ./examples/build/xor",
     "build:visualizer": "parcel build ./examples/visualizer/index.html --out-dir ./examples/build/visualizer --public-url ./",
     "build:documentation": "typedoc --entryPoints \"Neat\" --excludeExternals  --excludeInternal --out ./documentation/api-reference ./src",
     "test": "jest",

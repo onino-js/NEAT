@@ -29,7 +29,18 @@ class Genome extends Identifiable {
    * @param {number} shape - An array of number representing the number of inouts, hiddens and outputs
    */
   private initialize(shape: number[]) {
-    this.neuronGenes = NeatUtils.getNeuronGenesFromShape(shape);
+    //this.neuronGenes = NeatUtils.getNeuronGenesFromShape(shape);
+    shape.forEach((layer, layerIndex) => {
+      new Array(layer).fill(0).forEach((n) => {
+        const type =
+          layerIndex === 0
+            ? NeuronType.INPUT
+            : layerIndex > 0 && layerIndex < shape.length - 1
+            ? NeuronType.HIDDEN
+            : NeuronType.OUTPUT;
+        this.neuronGenes.push(new NeuronGene({ type }));
+      });
+    });
   }
 
   /**
@@ -104,7 +115,8 @@ class AxonGene extends Identifiable {
   constructor(opt?: Partial<AxonGene>) {
     super();
     Object.assign<AxonGene, Partial<AxonGene>>(this, opt);
-    this.axon = new Axon(this);
+    this.axon = new Axon({ axonGene: this });
+    // !opt.axon && (this.axon = new Axon({ axonGene: this }));
   }
   /**
    * Return a copy of the AxonGene

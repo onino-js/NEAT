@@ -38,7 +38,7 @@ class GraphLink {
 
   private drawLink() {
     this.context.beginPath();
-    this.context.strokeStyle="#000000"
+    this.context.strokeStyle=this.styles.strokeColor;
     this.context.lineWidth = this.styles.strokeSize;
     this.context.moveTo(this.input.x, this.input.y);
     this.context.lineTo(this.output.x, this.output.y);
