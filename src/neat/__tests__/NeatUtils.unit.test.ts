@@ -1,8 +1,9 @@
-import { NeuronType } from "./../models";
-import { AxonGene, Genome, NeuronGene } from "../Genome";
+import { NodeType } from "./../models";
 import { NeatUtils } from "./../NeatUtils";
 import { Neat } from "../Neat";
-import { Phenotype } from "../Phenotype";
+import { Network } from "../Network";
+import { Connexion } from "../Connexion";
+import { Node } from "../Node";
 
 describe("class NeatUtils", () => {
   describe("CheckShape", () => {
@@ -22,108 +23,111 @@ describe("class NeatUtils", () => {
   describe("generatePerceptron", () => {
     it("Check arguments before proceeding", () => {
       NeatUtils.checkShape = jest.fn();
-      NeatUtils.generatePerceptron([1, 0, 1]);
+      NeatUtils.generatePerceptron({ shape: [1, 0, 1] });
       expect(NeatUtils.checkShape).toHaveBeenCalledTimes(1);
     });
-    it("Returns a phenotype without errors", () => {
-      const createPhenotype = () => NeatUtils.generatePerceptron([1, 1]);
-      expect(createPhenotype).not.toThrow();
+    it("Returns a network without errors", () => {
+      const createNetwork = () =>
+        NeatUtils.generatePerceptron({ shape: [1, 1] });
+      expect(createNetwork).not.toThrow();
     });
-    it("Returns a phenotype with correct total number of nodes", () => {
-      let phenotype = NeatUtils.generatePerceptron([1, 1]);
-      expect(phenotype.neurons).toHaveLength(2);
-      phenotype = NeatUtils.generatePerceptron([5, 1]);
-      expect(phenotype.neurons).toHaveLength(6);
-      phenotype = NeatUtils.generatePerceptron([1, 7]);
-      expect(phenotype.neurons).toHaveLength(8);
+    it("Returns a network with correct total number of nodes", () => {
+      let network = NeatUtils.generatePerceptron({ shape: [1, 1] });
+      expect(network.nodes).toHaveLength(2);
+      network = NeatUtils.generatePerceptron({ shape: [5, 1] });
+      expect(network.nodes).toHaveLength(6);
+      network = NeatUtils.generatePerceptron({ shape: [1, 7] });
+      expect(network.nodes).toHaveLength(8);
     });
-    it("Returns a phenotype with correct number of inputs nodes", () => {
-      let phenotype = NeatUtils.generatePerceptron([1, 1]);
-      expect(phenotype.inputNodes).toHaveLength(1);
-      phenotype = NeatUtils.generatePerceptron([5, 1]);
-      expect(phenotype.inputNodes).toHaveLength(5);
+    it("Returns a network with correct number of inputs nodes", () => {
+      let network = NeatUtils.generatePerceptron({ shape: [1, 1] });
+      expect(network.inputNodes).toHaveLength(1);
+      network = NeatUtils.generatePerceptron({ shape: [5, 1] });
+      expect(network.inputNodes).toHaveLength(5);
     });
-    it("Returns a phenotype with correct number of hiddens nodes", () => {
-      let phenotype = NeatUtils.generatePerceptron([1, 1]);
-      expect(phenotype.hiddenNodes).toHaveLength(0);
-      phenotype = NeatUtils.generatePerceptron([1, 5, 1]);
-      expect(phenotype.hiddenNodes).toHaveLength(5);
+    it("Returns a network with correct number of hiddens nodes", () => {
+      let network = NeatUtils.generatePerceptron({ shape: [1, 1] });
+      expect(network.hiddenNodes).toHaveLength(0);
+      network = NeatUtils.generatePerceptron({ shape: [1, 5, 1] });
+      expect(network.hiddenNodes).toHaveLength(5);
     });
-    it("Returns a phenotype with correct number of output nodes", () => {
+    it("Returns a network with correct number of output nodes", () => {
       let shape = [1, 1];
-      let phenotype = NeatUtils.generatePerceptron(shape);
-      expect(phenotype.outputNodes).toHaveLength(shape[1]);
+      let network = NeatUtils.generatePerceptron({ shape });
+      expect(network.outputNodes).toHaveLength(shape[1]);
       shape = [1, 1, 5];
-      phenotype = NeatUtils.generatePerceptron([1, 1, 5]);
-      expect(phenotype.outputNodes).toHaveLength(shape[2]);
+      network = NeatUtils.generatePerceptron({ shape: [1, 1, 5] });
+      expect(network.outputNodes).toHaveLength(shape[2]);
     });
-    it("Returns a phenotype with correct number of connexions", () => {
-      let phenotype = NeatUtils.generatePerceptron([1, 1]);
-      expect(phenotype.axons).toHaveLength(1);
-      phenotype = NeatUtils.generatePerceptron([1, 1, 5]);
-      expect(phenotype.axons).toHaveLength(6);
+    it("Returns a network with correct number of connexions", () => {
+      let network = NeatUtils.generatePerceptron({ shape: [1, 1] });
+      expect(network.connexions).toHaveLength(1);
+      network = NeatUtils.generatePerceptron({ shape: [1, 1, 5] });
+      expect(network.connexions).toHaveLength(6);
     });
   });
-  describe("getNeuronGenesFromShape", () => {
+  describe("getNodesFromShape", () => {
     it("Returns an array of Genes", () => {
       let shape = [1, 1];
-      let genes = NeatUtils.getNeuronGenesFromShape(shape);
+      let genes = NeatUtils.getNodesFromShape(shape);
       expect(genes.length).toEqual(2);
-      expect(genes.filter((g) => g.type === NeuronType.INPUT).length).toEqual(
+      expect(genes.filter((g) => g.type === NodeType.INPUT).length).toEqual(
         shape[0]
       );
-      expect(genes.filter((g) => g.type === NeuronType.OUTPUT).length).toEqual(
+      expect(genes.filter((g) => g.type === NodeType.OUTPUT).length).toEqual(
         shape[1]
       );
       shape = [2, 3, 4];
-      genes = NeatUtils.getNeuronGenesFromShape(shape);
+      genes = NeatUtils.getNodesFromShape(shape);
       expect(genes.length).toEqual(2 + 3 + 4);
-      expect(genes.filter((g) => g.type === NeuronType.INPUT).length).toEqual(
+      expect(genes.filter((g) => g.type === NodeType.INPUT).length).toEqual(
         shape[0]
       );
-      expect(genes.filter((g) => g.type === NeuronType.OUTPUT).length).toEqual(
+      expect(genes.filter((g) => g.type === NodeType.OUTPUT).length).toEqual(
         shape[2]
       );
-      expect(genes.filter((g) => g.type === NeuronType.HIDDEN).length).toEqual(
+      expect(genes.filter((g) => g.type === NodeType.HIDDEN).length).toEqual(
         shape[1]
       );
     });
   });
   describe("computeNumberOfMissmatchGenes", () => {
-    const neuronGenes = [
-      new NeuronGene({ innovation: 1 }),
-      new NeuronGene({ innovation: 2 }),
-      new NeuronGene({ innovation: 3 }),
+    const shape = [1, 1];
+    const nodes = [
+      new Node({ innovation: 1 }),
+      new Node({ innovation: 2 }),
+      new Node({ innovation: 3 }),
     ];
-    const axonGenes1 = [
-      new AxonGene({ innovation: 4 }),
-      new AxonGene({ innovation: 5 }),
-      new AxonGene({ innovation: 6 }),
+    const connexions1 = [
+      new Connexion({ innovation: 4 }),
+      new Connexion({ innovation: 5 }),
+      new Connexion({ innovation: 6 }),
     ];
-    const axonGenes2 = [
-      new AxonGene({ innovation: 4 }),
-      new AxonGene({ innovation: 5 }),
-      new AxonGene({ innovation: 6 }),
+    const connexions2 = [
+      new Connexion({ innovation: 4 }),
+      new Connexion({ innovation: 5 }),
+      new Connexion({ innovation: 6 }),
     ];
-    const genome1 = new Genome({ neuronGenes, axonGenes: axonGenes1 });
-    const genome2 = new Genome({ neuronGenes, axonGenes: axonGenes2 });
-    let d = NeatUtils.computeNumberOfMissmatchGenes([genome1, genome2]);
+    const network1 = new Network({ shape, nodes, connexions: connexions1 });
+    const network2 = new Network({ shape, nodes, connexions: connexions2 });
+    let d = NeatUtils.computeNumberOfMissmatchGenes([network1, network2]);
     expect(d).toEqual(0);
-    genome2.axonGenes[2].innovation = 7;
-    d = NeatUtils.computeNumberOfMissmatchGenes([genome1, genome2]);
+    network2.connexions[2].innovation = 7;
+    d = NeatUtils.computeNumberOfMissmatchGenes([network1, network2]);
     expect(d).toEqual(2);
-    genome2.neuronGenes[2].innovation = 8; // neuronGenes are the same in both genomes
-    d = NeatUtils.computeNumberOfMissmatchGenes([genome1, genome2]);
+    network2.nodes[2].innovation = 8; // nodes are the same in both networks
+    d = NeatUtils.computeNumberOfMissmatchGenes([network1, network2]);
     expect(d).toEqual(2);
-    genome2.axonGenes[0].innovation = 9;
-    d = NeatUtils.computeNumberOfMissmatchGenes([genome1, genome2]);
+    network2.connexions[0].innovation = 9;
+    d = NeatUtils.computeNumberOfMissmatchGenes([network1, network2]);
     expect(d).toEqual(4);
   });
   describe("selectPopulation", () => {
+    const shape = [1, 1];
     const neat = new Neat();
-    const genomes = new Array(100).fill(0).map((d) => new Genome());
-    neat.species = [genomes];
-    genomes.map((g) => g.phenotype).forEach((p, i) => (p.adjustedFitness = i));
+    const networks = new Array(100).fill(0).map((d) => new Network({ shape }));
+    neat.species = [networks];
+    networks.forEach((p, i) => (p.adjustedFitness = i));
     it("Remove the correct percentage of the population", () => {
       NeatUtils.selectPopulation(neat);
       expect(neat.population.length).toEqual(50);
@@ -147,9 +151,10 @@ describe("class NeatUtils", () => {
     });
   });
   describe("computeFitness", () => {
+    const shape = [1, 1];
     const neat = new Neat();
-    const genomes = new Array(100).fill(0).map((d) => new Genome());
-    neat.species = [genomes];
+    const networks = new Array(100).fill(0).map((d) => new Network({ shape }));
+    neat.species = [networks];
     const fitnessFunction = jest.fn();
     it("Call the fitness function provided by user for each individual", () => {
       neat.configuration.fitnessFunction = fitnessFunction;
@@ -163,20 +168,23 @@ describe("class NeatUtils", () => {
     });
   });
   describe("speciatePopulation", () => {
-    describe("speciate different weighted genomes but same structure", () => {
-      const neat = new Neat();
+    describe("speciate different weighted networks but same structure", () => {
+      const neat = new Neat({ maxEpoch: 2 });
+      neat.configuration.distanceConfiguration.compatibilityThreshold = 0.2;
       const species = new Array(100)
         .fill(0)
-        .map((d) => new Genome({ shape: [1, 1] }));
+        .map((d) => new Network({ shape: [1, 1] }));
       species.forEach((g, i) => {
         const weight = i < 25 ? 1 : 0;
-        g.axonGenes.push(new AxonGene({ weight, innovation: 1 }));
+        g.connexions.push(new Connexion({ weight, innovation: 1 }));
       });
       neat.species = [species];
-      NeatUtils.speciatePopulation(neat);
-      expect(neat.species.length).toEqual(2);
-      expect(neat.species[0].length).toEqual(75);
-      expect(neat.species[1].length).toEqual(25);
+      it("", () => {
+        NeatUtils.speciatePopulation(neat);
+        expect(neat.species.length).toEqual(2);
+        expect(neat.species[0].length).toEqual(75);
+        expect(neat.species[1].length).toEqual(25);
+      });
     });
   });
 });

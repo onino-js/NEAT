@@ -1,5 +1,5 @@
-import { NeuronType } from "../neat/models";
-import { Neuron } from "../neat/Phenotype";
+import { NodeType } from "./../neat/models";
+import { Node } from "./../neat/Node";
 import { INITIAL_GRAPHNODE_STYLES } from "./constants";
 import { IGraphNodeStyles, IGraphNodeParams } from "./models";
 
@@ -9,7 +9,7 @@ import { IGraphNodeStyles, IGraphNodeParams } from "./models";
 
 /** Class representing a node displayed in the canvas. */
 class GraphNode {
-  public readonly neuron: Neuron;
+  public readonly node: Node;
   public x: number;
   public y: number;
   public styles: IGraphNodeStyles = INITIAL_GRAPHNODE_STYLES;
@@ -19,7 +19,7 @@ class GraphNode {
 
   /**
    * Create a graphNode.
-   * @param {Neuron} _neuron - The neuron corresponding to the node to be drawn.
+   * @param {Node} _node - The node corresponding to the node to be drawn.
    * @param {CanvasRenderingContext2D} _canvas - The cannvas context
    * @param {Partial<GraphNode>} opt - Override parameters
    */
@@ -61,11 +61,11 @@ class GraphNode {
   }
 
   private drawValue() {
-    if (this.neuron.value !== undefined) {
+    if (this.node.value !== undefined) {
       this.context.font = "15px sans-serif";
       this.context.textAlign = "center";
       this.context.strokeStyle = "#000000";
-      const val = (Math.round(this.neuron.value * 10) / 10).toString();
+      const val = (Math.round(this.node.value * 10) / 10).toString();
       this.context.strokeText(val, this.x, this.y + 5);
     }
   }
@@ -82,14 +82,14 @@ class GraphNode {
   }
 
   private setColors() {
-    switch (this.neuron.type) {
-      case NeuronType.INPUT:
+    switch (this.node.type) {
+      case NodeType.INPUT:
         this.fill = this.styles.inputFillColor;
         break;
-      case NeuronType.HIDDEN:
+      case NodeType.HIDDEN:
         this.fill = this.styles.hiddenFillColor;
         break;
-      case NeuronType.OUTPUT:
+      case NodeType.OUTPUT:
         this.fill = this.styles.outputFillColor;
         break;
     }

@@ -1,4 +1,4 @@
-import { Axon } from "../neat/Phenotype";
+import { Connexion } from "src/neat/Connexion";
 import { INITIAL_GRAPHLINK_STYLES } from "./constants";
 import { GraphNode } from "./GraphNode";
 import { IGraphLinkParams, IGraphLinkStyles, Iposition } from "./models";
@@ -9,16 +9,16 @@ import { IGraphLinkParams, IGraphLinkStyles, Iposition } from "./models";
 
 /** Class representing a link between two nodes in the canvas */
 class GraphLink {
-  public readonly axon: Axon;
+  public readonly connexion: Connexion;
   private context: CanvasRenderingContext2D;
   public input: GraphNode;
   public output: GraphNode;
-  public type: "link" | "recurrent" = "link"
+  public type: "link" | "recurrent" = "link";
   styles: IGraphLinkStyles = INITIAL_GRAPHLINK_STYLES;
 
   /**
    * Create a graphLink.
-   * @param {Axon} _axon - The axon corresponding to the node to be drawn.
+   * @param {Axon} _connexion - The connexion corresponding to the node to be drawn.
    * @param {CanvasRenderingContext2D} _canvas - The cannvas context
    * @param {Partial<GraphLink>} opt - Override parameters
    */
@@ -31,14 +31,14 @@ class GraphLink {
    * Draw the graphNode in the canvas (circle)
    */
   public draw = () => {
-    if (this.type==="recurrent") {
+    if (this.type === "recurrent") {
       this.drawRecurrent();
     } else this.drawLink();
   };
 
   private drawLink() {
     this.context.beginPath();
-    this.context.strokeStyle=this.styles.strokeColor;
+    this.context.strokeStyle = this.styles.strokeColor;
     this.context.lineWidth = this.styles.strokeSize;
     this.context.moveTo(this.input.x, this.input.y);
     this.context.lineTo(this.output.x, this.output.y);
@@ -54,11 +54,11 @@ class GraphLink {
   private drawDistantRecurent() {
     this.context.beginPath();
     this.context.lineWidth = 1;
-    this.context.strokeStyle="#FF0000"
+    this.context.strokeStyle = "#FF0000";
     this.context.moveTo(this.input.x, this.input.y);
     this.context.lineTo(this.output.x, this.output.y);
     this.context.stroke();
-    // Draw output link 
+    // Draw output link
 
     // Draw inupt link
   }

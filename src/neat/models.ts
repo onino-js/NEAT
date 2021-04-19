@@ -1,7 +1,8 @@
-import { AxonGene, NeuronGene } from "./Genome";
-import { Phenotype } from "./Phenotype";
+import { Connexion } from "./Connexion";
+import { Network } from "./Network";
+import { Node } from "./Node";
 
-export enum NeuronType {
+export enum NodeType {
   INPUT = "INPUT",
   HIDDEN = "HIDDEN",
   OUTPUT = "OUTPUT",
@@ -18,11 +19,11 @@ export interface IActivationFunction {
 }
 
 export interface ImutationRates {
-  addNeuronGene: number; // Mutation rate for adding a new neuron gene in the genome
-  addAxonGene: number; // Mutation rate for adding a new axon gene in the genome
-  removeNeuronGene: number; // Mutation rate for removing a neuron gene in the genome
-  removeAxonGene: number; // Mutation rate for removing an axon gene in the genome
-  changeAxonGeneWeight: number; // Mutation rate for changing the weight in an axion gene
+  addNode: number; // Mutation rate for adding a new node gene in the genome
+  addConnexion: number; // Mutation rate for adding a new axon gene in the genome
+  removeNode: number; // Mutation rate for removing a node gene in the genome
+  removeConnexion: number; // Mutation rate for removing an axon gene in the genome
+  changeConnexionWeight: number; // Mutation rate for changing the weight in an axion gene
 }
 
 export interface INeatConfiguration {
@@ -34,7 +35,7 @@ export interface INeatConfiguration {
   shape: number[]; // The initial shape of the network. The first number is the number of inputs, then hiddens and outputs.
   distanceConfiguration: IdistanceConfiguration; // A object containing informations for the distance calculation. The distance between phenotypes is used to perform speciation.
   fitnessFunction: IfitnessFunction;
-  activationFunction: ActivationType;
+  activationType: ActivationType;
   recursive: boolean; // Wether or not recursive connexions are allowed
 }
 
@@ -46,7 +47,17 @@ export interface IdistanceConfiguration {
 }
 
 export interface IfitnessFunction {
-  (input: Phenotype): number; // User provided function to evaluate the fitness of a given phenotype.
+  (input: Network): number; // User provided function to evaluate the fitness of a given phenotype.
 }
 
-export type IGene = NeuronGene | AxonGene;
+export type IGene = Node | Connexion;
+
+export interface INetworkParams extends Partial<Network> {
+  shape: number[];
+}
+
+export interface IgeneratePerceptronParams {
+  shape: number[];
+  randomWeight?: boolean;
+  activationType?: ActivationType;
+}

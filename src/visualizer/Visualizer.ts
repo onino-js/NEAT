@@ -1,10 +1,10 @@
-import { Phenotype } from "../neat/Phenotype";
 import { GraphNode } from "./GraphNode";
 import { GraphLink } from "./GraphLink";
-import { NeuronType } from "../neat/models";
+import { NodeType } from "../neat/models";
 import { IvisualizerStyles, Iposition } from "./models";
 import { INITIAL_VISUALIZER_STYLES } from "./constants";
 import { NeatUtils } from "./../neat/NeatUtils";
+import { Network } from "src/neat/Network";
 
 export class Visualizer {
   public canvasRef: HTMLCanvasElement;
@@ -12,19 +12,15 @@ export class Visualizer {
   public graphNodes: GraphNode[] = [];
   public graphLinks: GraphLink[] = [];
   public styles: IvisualizerStyles;
-  public phenotype: Phenotype;
+  public network: Network;
   private _grid: Iposition[];
 
   constructor(
     canvasId: string,
-    phenotype: Phenotype,
+    network: Network,
     styles?: Partial<IvisualizerStyles>
   ) {
-    Object.assign(
-      this,
-      { styles: INITIAL_VISUALIZER_STYLES, phenotype },
-      styles
-    );
+    Object.assign(this, { styles: INITIAL_VISUALIZER_STYLES, network }, styles);
     this.init(canvasId);
     this.draw();
   }
@@ -40,7 +36,7 @@ export class Visualizer {
       el.height = this.styles.height;
       el.style.backgroundColor = this.styles.backgroundColor;
     }
-    if (this.phenotype) {
+    if (this.network) {
       this.draw();
     }
   };
@@ -53,7 +49,7 @@ export class Visualizer {
   }
 
   public draw() {
-    if (!this.phenotype) return;
+    if (!this.network) return;
     else {
       this.reset();
       this.computeGrid();
@@ -65,7 +61,7 @@ export class Visualizer {
 
   private computeGrid() {
     let grid: Iposition[] = [];
-    this.phenotype.shape.forEach((layer, layerIndex) => {
+    this.network.shape.forEach((layer, layerIndex) => {
       for (let rowIndex = 0; rowIndex < layer; rowIndex++) {
         grid.push({
           x: this.computeXPos(layerIndex),
@@ -78,13 +74,13 @@ export class Visualizer {
 
   private computeXPos(layerIndex: number): number {
     const w = this.styles.width - 2 * this.styles.padding[1];
-    const n = this.phenotype.shape.length;
+    const n = this.network.shape.length;
     return this.styles.padding[1] + (layerIndex * w) / (n - 1);
   }
 
   private computeYPos(layerIndex: number, rowIndex: number): number {
     const h = this.styles.height - 2 * this.styles.padding[0];
-    const layers = this.phenotype.shape;
+    const layers = this.network.shape;
     const n = layers[layerIndex] - 1;
     const rowGap = Math.min(this.styles.minGap, h / n);
     const additionalPadding = (h - rowGap * n) / 2;
@@ -92,10 +88,10 @@ export class Visualizer {
   }
 
   public addGraphNodes = () => {
-    this.phenotype.neurons.forEach((neuron, nodeIndex) => {
+    this.network.nodes.forEach((node, nodeIndex) => {
       const { x, y } = this._grid[nodeIndex];
       const graphNode = new GraphNode({
-        neuron,
+        node,
         context: this.canvasContext,
         nodeIndex,
         x,
@@ -106,13 +102,16 @@ export class Visualizer {
   };
 
   public addGraphLinks() {
-    this.phenotype.axons.forEach((axon, axonIndex) => {
+    this.network.connexions.forEach((connexion, connexionIndex) => {
       // retreive graphnodes
-      const input = this.graphNodes.find((gn) => gn.neuron === axon.input);
-      const output = this.graphNodes.find((gn) => gn.neuron === axon.output);
-      const isRecurrent = NeatUtils.isLinkRecurent(axon, this.phenotype.axons);
+      const input = this.graphNodes.find((gn) => gn.node === connexion.input);
+      const output = this.graphNodes.find((gn) => gn.node === connexion.output);
+      const isRecurrent = NeatUtils.isLinkRecurent(
+        connexion,
+        this.network.connexions
+      );
       const graphLink = new GraphLink({
-        axon,
+        connexion,
         context: this.canvasContext,
         input,
         output,
@@ -142,13 +141,13 @@ export class Visualizer {
   }
 
   public getInputNodes() {
-    return this.graphNodes.filter((n) => n.neuron.type === NeuronType.INPUT);
+    return this.graphNodes.filter((n) => n.node.type === NodeType.INPUT);
   }
   public getHiddenNodes() {
-    return this.graphNodes.filter((n) => n.neuron.type === NeuronType.HIDDEN);
+    return this.graphNodes.filter((n) => n.node.type === NodeType.HIDDEN);
   }
   public getOutputNodes() {
-    return this.graphNodes.filter((n) => n.neuron.type === NeuronType.OUTPUT);
+    return this.graphNodes.filter((n) => n.node.type === NodeType.OUTPUT);
   }
 
   public setStyles(styles: Partial<IvisualizerStyles>) {
@@ -157,7 +156,7 @@ export class Visualizer {
   }
 
   public getNeuronByGraphIndex(index: number) {
-    return this.graphNodes.find((gn) => gn.nodeIndex === index).neuron;
+    return this.graphNodes.find((gn) => gn.nodeIndex === index).node;
   }
 }
 

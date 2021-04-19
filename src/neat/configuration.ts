@@ -7,14 +7,14 @@ export const INITIAL_CONFIGURATION: INeatConfiguration = {
   survivalRate: 0.5,
   reproducerRate: 0.4,
   mutationRates: {
-    addNeuronGene: 0.05,
-    addAxonGene: 0.05,
-    removeNeuronGene: 0.05,
-    removeAxonGene: 0.05,
-    changeAxonGeneWeight: 0.05,
+    addNode: 0.05,
+    addConnexion: 0.05,
+    removeNode: 0.05,
+    removeConnexion: 0.05,
+    changeConnexionWeight: 0.05,
   },
   maxEpoch: 50,
-  shape: [1, 0, 1],
+  shape: [1, 1],
   distanceConfiguration: {
     c1: 2,
     c2: 0.5,
@@ -22,6 +22,6 @@ export const INITIAL_CONFIGURATION: INeatConfiguration = {
     compatibilityThreshold: 1.5,
   },
   fitnessFunction: (input) => 0,
-  activationFunction: ActivationType.RELU,
+  activationType: ActivationType.RELU,
   recursive: false,
 };
