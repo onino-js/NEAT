@@ -40,8 +40,6 @@ class Network extends Identifiable {
    * @param {number} shape - An array of number representing the number of inouts, hiddens and outputs
    */
   private initialize(shape: number[]) {
-    //this.nodes = NeatUtils.getNeuronGenesFromShape(shape);
-    console.log(shape);
     let innovation = 1;
     shape.forEach((layer, layerIndex) => {
       new Array(layer).fill(0).forEach((n, i) => {
@@ -55,7 +53,7 @@ class Network extends Identifiable {
         innovation++;
       });
     });
-    console.log(this.nodes);
+    return this.nodes;
   }
 
   /**
