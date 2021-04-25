@@ -2,7 +2,7 @@ import { Identifiable } from "./../utils/Identifiable";
 import { Node } from "./Node";
 
 /**
- * Class representing an axon (or connexion).
+ * Class representing a connexion between two nodes
  * @extends Identifiable
  */
 class Connexion extends Identifiable {

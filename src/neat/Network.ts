@@ -2,7 +2,6 @@ import {
   IActivationFunction,
   NodeType,
   INetworkParams,
-  IGene,
   ActivationType,
 } from "./models";
 import { Identifiable } from "./../utils/Identifiable";
@@ -26,13 +25,32 @@ class Network extends Identifiable {
 
   /**
    * Create a Network instance from the provided genome.
-   * @param {Genome} genome - The genome of the phenotype.
    * @param {Partial<Genome>} opt - An optional parameter to set the properties.
    */
   constructor(opt: INetworkParams) {
     super();
     Object.assign(this, opt);
     this.initialize(opt.shape);
+  }
+
+  get outputValues(): number[] {
+    return this.outputNodes.map((n) => n.value);
+  }
+
+  get inputNodes() {
+    return this.nodes.filter((n) => n.type === NodeType.INPUT);
+    // .sort((a, b) => a.innovation - b.innovation);
+  }
+  get hiddenNodes() {
+    return this.nodes.filter((n) => n.type === NodeType.HIDDEN);
+    //  .sort((a, b) => a.innovation - b.innovation);
+  }
+  get outputNodes() {
+    return this.nodes.filter((n) => n.type === NodeType.OUTPUT);
+    //  .sort((a, b) => a.innovation - b.innovation);
+  }
+  get nodeIndex(): number {
+    return this.nodes.reduce((acc, cur) => Math.max(acc, cur.nodeIndex), 0);
   }
 
   /**
@@ -49,7 +67,7 @@ class Network extends Identifiable {
             : layerIndex > 0 && layerIndex < shape.length - 1
             ? NodeType.HIDDEN
             : NodeType.OUTPUT;
-        this.nodes.push(new Node({ type, layerIndex, innovation: innovation }));
+        this.addNode(new Node({ type, layerIndex, innovation }));
         innovation++;
       });
     });
@@ -150,34 +168,66 @@ class Network extends Identifiable {
     }
     // Check input values
     inputs.forEach((i) => {
+      if (isNaN(i) || !Number.isInteger(i)) {
+        throw new Error(`Inputs should be positive integers`);
+      }
+    });
+    inputs.forEach((i) => {
       if (i < 0 || i > 1) {
         console.warn("Inputs are not normalized");
       }
     });
   }
 
-  get outputValues(): number[] {
-    return this.outputNodes.map((n) => n.value);
-  }
-
-  get inputNodes() {
-    return this.nodes.filter((n) => n.type === NodeType.INPUT);
-    // .sort((a, b) => a.innovation - b.innovation);
-  }
-  get hiddenNodes() {
-    return this.nodes.filter((n) => n.type === NodeType.HIDDEN);
-    //  .sort((a, b) => a.innovation - b.innovation);
-  }
-  get outputNodes() {
-    return this.nodes.filter((n) => n.type === NodeType.OUTPUT);
-    //  .sort((a, b) => a.innovation - b.innovation);
-  }
-  get layered(): boolean {
-    return this.shape && this.shape.length > 0;
-  }
-
   public setUpdateCallback(callback: (p: Network) => void) {
     this.updateCallback = callback;
+  }
+
+  /**
+   * Add a new node to the network. Set the correct nodeIndex.
+   * @param {Node} node - The node to be added
+   */
+  public addNode(node: Node): Node {
+    node.nodeIndex = this.nodeIndex + 1;
+    !node.type && (node.type = NodeType.HIDDEN);
+    this.nodes.push(node);
+    return node;
+  }
+
+  /**
+   * Create a new connextion between two nodes.
+   * @param {number} n1 - The input node index.
+   * @param {number} n2 - The output node index.
+   */
+  public connectNodes(n1: number, n2: number) {
+    const input = this.getNodeByIndex(n1);
+    const output = this.getNodeByIndex(n2);
+    const existing = this.connexions.find(
+      (c) => c.input === input && c.output === output
+    );
+    if (existing) {
+      throw new Error(
+        `Connection already exists between nodes with indexes ${n1} and ${n2}.`
+      );
+    }
+    if (!input || !output) {
+      throw new Error(`Unable to connect nodes with indexes ${n1} and ${n2}.`);
+    } else if (input.type === NodeType.OUTPUT) {
+      throw new Error(`Output node can't be connected as input node`);
+    } else if (output.type === NodeType.INPUT) {
+      throw new Error(`Output node can't be connected as input node`);
+    } else {
+      this.connexions.push(new Connexion({ input, output }));
+    }
+  }
+
+  /**
+   * Get a node with corresponding node index
+   * @param {number} nodeIndex - The index of the node
+   * @return a Node
+   */
+  public getNodeByIndex(nodeIndex: number): Node {
+    return this.nodes.find((n) => n.nodeIndex === nodeIndex);
   }
 
   /**

@@ -21,6 +21,7 @@ const start = () => {
   const neat = new Neat({ shape: [2, 1], fitnessFunction });
   console.log("Start running neat algorithm....");
   neat.run();
+  console.log(neat.species);
 };
 
 window.onload = main;

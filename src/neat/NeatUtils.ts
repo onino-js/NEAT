@@ -102,6 +102,7 @@ class NeatUtils {
           networks: [representants[rIndex], p],
           distanceConfiguration,
         });
+        // console.log(distance);
         // If the two are compatible, push the network into newSpecies with the same rIndex
         if (distance <= distanceConfiguration.compatibilityThreshold) {
           newSpecies[rIndex].push(p);
@@ -130,14 +131,12 @@ class NeatUtils {
       addNode,
       changeConnexionWeight,
     } = neat.configuration.mutationRates;
-    neat.species.forEach((s) => {
-      s.forEach((g) => {
-        NeatUtils.randomDo(addConnexion) &&
-          NeatUtils.addConnexionMutation(g, s);
-        NeatUtils.randomDo(addNode) && NeatUtils.addNodeMutation(g, s);
-        NeatUtils.randomDo(changeConnexionWeight) &&
-          NeatUtils.changeWeightMutation(g);
-      });
+    neat.population.forEach((p) => {
+      NeatUtils.randomDo(addConnexion) &&
+        NeatUtils.addConnexionMutation(p, neat);
+      NeatUtils.randomDo(addNode) && NeatUtils.addNodeMutation(p, neat);
+      NeatUtils.randomDo(changeConnexionWeight) &&
+        NeatUtils.changeWeightMutation(p);
     });
     return neat;
   }
@@ -150,47 +149,69 @@ class NeatUtils {
    * @param {Network[]} networks An array of networks of the same species.
    * @return {Network[]} An array of species.
    */
-  static addNodeMutation(network: Network, networks: Network[]) {
+  static addNodeMutation(network: Network, neat: Neat) {
     // Get all connexions in the concerned species
-    const allConnexions = networks.map((g) => g.connexions).flat();
+    const allConnexions = neat.population.map((g) => g.connexions).flat();
     if (allConnexions.length === 0) return;
     // Pick randomly an existing connexion gene.
-    const connexionToMutate = NeatUtils.randomPick(network.connexions);
+    const connexionToMutate = NeatUtils.randomPick(
+      network.connexions.filter((c) => c.active)
+    );
     // Return if no connexion
     if (!connexionToMutate) return;
     // Disable the connexion
     connexionToMutate.active = false;
     const { input, output } = connexionToMutate;
-    // Try to find an connexion in all genes with same input and output innovations
-    const sameConnexion = allConnexions.find(
-      (ag) =>
-        ag.input.innovation === input.innovation &&
-        ag.output.innovation === output.innovation
-    );
-    // If found, assign the same innovation, else, assign the incremented global innovation number
-    const innovation =
-      sameConnexion?.innovation ||
-      NeatUtils.getMaxInnovation(allConnexions) + 1;
+    // Retreive the innovation number for this mutation
+    const innovation = NeatUtils.getNodeInnovation(connexionToMutate, neat);
     // create a new node gene
     const node = new Node({ innovation });
+    network.addNode(node);
     // create two new connexions following instructions given in "#Node Mutation" of the documentation (neat-implementation)
     const connexionIn = new Connexion({
       weight: 1,
       output: node,
       input,
-      innovation,
     });
+    connexionIn.innovation = NeatUtils.getConnexionInnovation(
+      connexionIn,
+      neat
+    );
+    network.connexions.push(connexionIn);
     const connexionOut = new Connexion({
       weight: connexionToMutate.weight,
       input: node,
       output,
-      innovation,
     });
+    connexionOut.innovation = NeatUtils.getConnexionInnovation(
+      connexionOut,
+      neat
+    );
     // Push the new connexions into the network
-    network.connexions.push(connexionIn, connexionOut);
+    network.connexions.push(connexionOut);
     // Push the new node into the network
-    network.nodes.push(node);
     return network;
+  }
+
+  static getNodeInnovation(connexion: Connexion, neat: Neat): number {
+    const allConnexions = neat.population.map((p) => p.connexions).flat();
+    const { input, output } = connexion;
+    const allConnexionfromInput = allConnexions.filter(
+      (c) => c.input.innovation === input.innovation
+    );
+    const allConnexionfromOutput = allConnexions.filter(
+      (c) => c.output.innovation === output.innovation
+    );
+    const sameConnexion = allConnexionfromInput.find(
+      (cInput) =>
+        allConnexionfromOutput.find(
+          (cOutput) => cOutput.input.innovation === cInput.output.innovation
+        ) !== undefined
+    );
+    return (
+      sameConnexion?.output.innovation ||
+      NeatUtils.getMaxNodeInnovation(neat) + 1
+    );
   }
 
   /**
@@ -202,12 +223,7 @@ class NeatUtils {
    * @param {Network[]} networks TAn array of networks of the same species.
    * @return {Network} The mutated network.
    */
-  static addConnexionMutation(network: Network, networks: Network[]) {
-    // Get all connexions in the concerned species
-    const allConnexions = networks.map((g) => g.connexions).flat();
-    // Get the max innovation number of all genes
-    const maxInnovation = NeatUtils.getMaxInnovation(allConnexions);
-    console.log(maxInnovation);
+  static addConnexionMutation(network: Network, neat: Neat) {
     // pick an neron to be the input - don't allow to be of type output
     const input = NeatUtils.randomPick(
       network.nodes.filter((n) => n.type !== NodeType.OUTPUT)
@@ -216,7 +232,6 @@ class NeatUtils {
     const output = NeatUtils.randomPick(
       network.nodes.filter((n) => n.type !== NodeType.INPUT)
     );
-    //console.log(output.innovation);
     // Create a new Connexion by picking random Node
     const connexion = new Connexion({ input, output, weight: Math.random() });
     // Do nothing if the new connexion is recurrent
@@ -225,29 +240,30 @@ class NeatUtils {
     }
     // Do nothing if the new connexion already exists
     if (
-      network.connexions.find(
-        (ax) => ax.input === input && ax.output === output
-      )
+      network.connexions.find((c) => c.input === input && c.output === output)
     ) {
       return; // TODO - retry !!!!
     }
-    // Retreive the same innovation in the genes array
-    const innovationIndex =
-      allConnexions.find(
-        (g) =>
-          g.input.innovation === input.innovation &&
-          g.output.innovation === output.innovation
-      )?.innovation || -1;
-
-    //  console.log(innovationIndex);
-    // if the same innovation exists, apply the same innovation number to the mutated gene
-    // if not, increment the max innovation number and apply it
-    connexion.innovation =
-      innovationIndex !== -1 ? innovationIndex : maxInnovation + 1;
-
+    // Retreive the innovation number for this mutation
+    const innovation = NeatUtils.getConnexionInnovation(connexion, neat);
+    connexion.innovation = innovation;
     network.connexions.push(connexion);
     // Retun the mutated network
     return network;
+  }
+
+  static getConnexionInnovation(connexion: Connexion, neat: Neat): number {
+    const allConnexions = neat.population.map((p) => p.connexions).flat();
+    const innovationIndex = allConnexions.find(
+      (g) =>
+        g.input.innovation === connexion.input.innovation &&
+        g.output.innovation === connexion.output.innovation
+    )?.innovation;
+    // if the same innovation exists, apply the same innovation number to the mutated gene
+    // if not, increment the max innovation number and apply it
+    return innovationIndex !== undefined
+      ? innovationIndex
+      : NeatUtils.getMaxConnexionInnovation(neat) + 1;
   }
 
   /**
@@ -349,7 +365,7 @@ class NeatUtils {
   }
 
   /**
-   * copy an connexion gene into a network.
+   * copy a connexion gene into a network.
    * Make sure that the cloned nodes integrate well in the network structure
    *
    * @param {Connexion} connexion the connexion gene to copy.
@@ -455,16 +471,29 @@ class NeatUtils {
   }
 
   /**
-   * Return max innovation number found in an array of genes
+   * Return max innovation number found in a neat object
    *
-   * @param {IGene[]} genes An array of genes
+   * @param {Neat} neat An array of genes
    * @return {number} the max innovation number found
    */
-  static getMaxInnovation(genes: IGene[]): number {
-    return genes.reduce(
-      (acc, cur) => (acc >= cur.innovation ? acc : cur.innovation),
-      0
-    );
+  static getMaxNodeInnovation(neat: Neat): number {
+    const allInnovations: number[] = neat.population
+      .map((p) => p.nodes.map((c) => c.innovation))
+      .flat();
+    return allInnovations.reduce((acc, cur) => Math.max(acc, cur), 0);
+  }
+
+  /**
+   * Return max innovation number found in a neat object
+   *
+   * @param {Neat} neat An array of genes
+   * @return {number} the max innovation number found
+   */
+  static getMaxConnexionInnovation(neat: Neat): number {
+    const allInnovations: number[] = neat.population
+      .map((p) => p.connexions.map((c) => c.innovation))
+      .flat();
+    return allInnovations.reduce((acc, cur) => Math.max(acc, cur), 0);
   }
 
   /**
@@ -552,7 +581,8 @@ class NeatUtils {
       networks[0].connexions.length,
       networks[1].connexions.length
     );
-    return (c1 * E) / N + (c2 * D) / N + c3 * W;
+    //console.log(E, D, W);
+    return N === 0 ? 0 : (c1 * E) / N + (c2 * D) / N + c3 * W;
   }
 
   /**
@@ -562,14 +592,12 @@ class NeatUtils {
    * @return {number} the number of disjoint genes.
    */
   static computeNumberOfMissmatchGenes(networks: [Network, Network]): number {
-    return networks[0].connexions
-      .concat(networks[1].connexions)
-      .map((g) => g.innovation)
-      .reduce(
-        (acc, cur, i, arr) =>
-          arr.filter((a) => a === cur).length === 2 ? acc : acc + 1,
-        0
-      );
+    const set1 = new Set(networks[0].connexions.map((c) => c.innovation));
+    const set2 = new Set(networks[1].connexions.map((c) => c.innovation));
+    const fullSet = Array.from(set1).concat(Array.from(set2));
+    const doubleRemoved = new Set(fullSet);
+    const diff = fullSet.length - doubleRemoved.size;
+    return fullSet.length - 2 * diff;
   }
 
   /**
@@ -579,6 +607,16 @@ class NeatUtils {
    * @return {number} the number of disjoint genes.
    */
   static computeNumberOfDisjointGenes(networks: [Network, Network]): number {
+    if (
+      NeatUtils.computeNumberOfMissmatchGenes(networks) -
+        NeatUtils.computeNumberOfExcessGenes(networks) <
+      0
+    ) {
+      console.warn(
+        "Error:",
+        networks.map((n) => n.clone())
+      );
+    }
     return (
       NeatUtils.computeNumberOfMissmatchGenes(networks) -
       NeatUtils.computeNumberOfExcessGenes(networks)
@@ -592,13 +630,9 @@ class NeatUtils {
    * @return {number} the number of disjoint genes.
    */
   static computeNumberOfExcessGenes(networks: [Network, Network]): number {
-    const genes1 = NeatUtils.getGenesIndexedByInnovation(
-      networks[0].connexions
+    return Math.abs(
+      networks[0].connexions.length - networks[1].connexions.length
     );
-    const genes2 = NeatUtils.getGenesIndexedByInnovation(
-      networks[1].connexions
-    );
-    return Math.abs(genes1.length - genes2.length);
   }
 
   /**
@@ -645,6 +679,7 @@ class NeatUtils {
         networks: [cur, network],
         distanceConfiguration: distanceConfiguration,
       });
+      //  console.log(d);
       return (
         acc +
         NeatUtils.shFunction(d, distanceConfiguration.compatibilityThreshold)

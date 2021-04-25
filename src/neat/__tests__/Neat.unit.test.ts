@@ -34,7 +34,6 @@ describe("class Neat", () => {
       expect(createNeat).toThrow();
     });
   });
-
   describe("Run - run the Neat algorithm", () => {
     it("Trigger initialize population method one time", () => {
       const neat = new Neat();

@@ -40,13 +40,13 @@ export class Neat {
       // console.log(this.population.length);
       NeatUtils.computeFitness(this); // Fitnesses and asjusted fitnesses are coputed
       NeatUtils.speciatePopulation(this); // Genomes are sorted into species in the species property
-      NeatUtils.selectPopulation(this); // Some phenotypes didn't survived, the species arrays are truncated
+      //  NeatUtils.selectPopulation(this); // Some phenotypes didn't survived, the species arrays are truncated
       NeatUtils.mutatePopulation(this); // Some genomes have mutated through one  of the three mutation type
-      //NeatUtils.crossoverPopulation(this); // New genomes are created with crossover, the population size is full again
+      //    NeatUtils.crossoverPopulation(this); // New genomes are created with crossover, the population size is full again
       if (NeatUtils.evaluateCriteria(this)) break; // beak the loop if convergence is acheived
       this.epoch++;
       // console.log(this.species);
     }
-    //   console.log(this.species);
+    // console.log(this.population);
   }
 }

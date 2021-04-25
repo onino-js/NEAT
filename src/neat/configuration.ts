@@ -3,7 +3,7 @@ import { ActivationType, INeatConfiguration } from "./models";
 // The default configuration object.
 // The settings are pretty the same than the original paper
 export const INITIAL_CONFIGURATION: INeatConfiguration = {
-  populationSize: 20,
+  populationSize: 10,
   survivalRate: 0.5,
   reproducerRate: 0.4,
   mutationRates: {
@@ -11,15 +11,15 @@ export const INITIAL_CONFIGURATION: INeatConfiguration = {
     addConnexion: 0.05,
     removeNode: 0.05,
     removeConnexion: 0.05,
-    changeConnexionWeight: 0.05,
+    changeConnexionWeight: 0.8,
   },
-  maxEpoch: 50,
+  maxEpoch: 100,
   shape: [1, 1],
   distanceConfiguration: {
     c1: 2,
     c2: 0.5,
     c3: 1,
-    compatibilityThreshold: 1.5,
+    compatibilityThreshold: 0.3,
   },
   fitnessFunction: (input) => 0,
   activationType: ActivationType.RELU,
