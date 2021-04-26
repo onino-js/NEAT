@@ -13,7 +13,7 @@ export const INITIAL_CONFIGURATION: INeatConfiguration = {
     removeConnexion: 0.05,
     changeConnexionWeight: 0.8,
   },
-  maxEpoch: 100,
+  maxEpoch: 50,
   shape: [1, 1],
   distanceConfiguration: {
     c1: 2,

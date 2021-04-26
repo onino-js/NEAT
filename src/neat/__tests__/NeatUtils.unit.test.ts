@@ -65,6 +65,21 @@ describe("class NeatUtils", () => {
       network = NeatUtils.generatePerceptron({ shape: [1, 1, 5] });
       expect(network.connexions).toHaveLength(6);
     });
+    it("All genes have unique innovation number", () => {
+      let network = NeatUtils.generatePerceptron({ shape: [3, 4, 3, 1] });
+      network.connexions.forEach((c) => {
+        const sameInnovation = network.connexions.filter(
+          (_c) => _c.innovation === c.innovation
+        );
+        expect(sameInnovation.length).toEqual(1);
+      });
+      network.nodes.forEach((c) => {
+        const sameInnovation = network.nodes.filter(
+          (_c) => _c.innovation === c.innovation
+        );
+        expect(sameInnovation.length).toEqual(1);
+      });
+    });
   });
   describe("getNodesFromShape", () => {
     it("Returns an array of Genes", () => {
@@ -91,7 +106,7 @@ describe("class NeatUtils", () => {
       );
     });
   });
-  describe("computeNumberOfMissmatchGenes", () => {
+  describe("computeNumberOfMissmatchGenes - simple net", () => {
     const shape = [1, 1];
     const nodes = [new Node(), new Node(), new Node()];
     const connexions1 = [
@@ -117,6 +132,104 @@ describe("class NeatUtils", () => {
     network2.connexions[0].innovation = 9;
     d = NeatUtils.computeNumberOfMissmatchGenes([network1, network2]);
     expect(d).toEqual(4);
+  });
+  describe("computeNumberOfMissmatchGenes - perceptron", () => {
+    it("Retun 0 when the network are equivalent", () => {
+      const perceptron1 = NeatUtils.generatePerceptron({ shape: [2, 3, 2] });
+      const perceptron2 = NeatUtils.generatePerceptron({ shape: [2, 3, 2] });
+      const d = NeatUtils.computeNumberOfMissmatchGenes([
+        perceptron1,
+        perceptron2,
+      ]);
+      expect(d).toEqual(0);
+    });
+    it("Retun the correct number of missmatching genes - 1", () => {
+      const perceptron1 = NeatUtils.generatePerceptron({ shape: [2, 3, 2] });
+      const perceptron2 = NeatUtils.generatePerceptron({ shape: [2, 3, 1] });
+      const d = NeatUtils.computeNumberOfMissmatchGenes([
+        perceptron1,
+        perceptron2,
+      ]);
+      expect(d).toEqual(3);
+    });
+    it("Retun the correct number of missmatching genes - 2", () => {
+      const perceptron1 = NeatUtils.generatePerceptron({ shape: [2, 3, 2] });
+      const perceptron2 = NeatUtils.generatePerceptron({ shape: [2, 3, 2] });
+      const c = NeatUtils.randomPick(perceptron2.connexions);
+      c.innovation = 100;
+      const d = NeatUtils.computeNumberOfMissmatchGenes([
+        perceptron1,
+        perceptron2,
+      ]);
+      expect(d).toEqual(2);
+    });
+  });
+  describe("computeNumberOfExcessGenes", () => {
+    it("Return 0 when networks are equivalents", () => {
+      const network1 = NeatUtils.generatePerceptron({ shape: [2, 3, 2] });
+      const network2 = NeatUtils.generatePerceptron({ shape: [2, 3, 2] });
+      const d = NeatUtils.computeNumberOfExcessGenes([network1, network2]);
+      expect(d).toEqual(0);
+    });
+    it("Return the correct number of excess genes - 1", () => {
+      const network1 = NeatUtils.generatePerceptron({ shape: [2, 3, 3, 2] });
+      const network2 = NeatUtils.generatePerceptron({ shape: [2, 3, 3, 2] });
+      network1.connectNodes(1, 8, 100);
+      const d1 = NeatUtils.computeNumberOfExcessGenes([network1, network2]);
+      expect(d1).toEqual(1);
+      network1.connectNodes(1, 9, 101);
+      const d2 = NeatUtils.computeNumberOfExcessGenes([network1, network2]);
+      expect(d2).toEqual(2);
+    });
+    // it("Return the correct number of excess genes - 2", () => {
+    //   const network1 = NeatUtils.generatePerceptron({ shape: [2, 3, 3, 2] });
+    //   const network2 = NeatUtils.generatePerceptron({ shape: [2, 3, 3, 2] });
+    //   network1.connexions.splice(1, 1);
+    //   const d1 = NeatUtils.computeNumberOfExcessGenes([network1, network2]);
+    //   expect(d1).toEqual(0);
+    //   network1.connexions.splice(3, 1);
+    //   const d2 = NeatUtils.computeNumberOfExcessGenes([network1, network2]);
+    //   expect(d2).toEqual(0);
+    // });
+    // it("Return the correct number of excess genes - 3", () => {
+    //   const network1 = NeatUtils.generatePerceptron({ shape: [2, 3, 3, 2] });
+    //   const network2 = NeatUtils.generatePerceptron({ shape: [2, 3, 3, 2] });
+    //   network1.connexions.splice(1, 1);
+    //   network1.connectNodes(1, 8, 100);
+    //   const d1 = NeatUtils.computeNumberOfExcessGenes([network1, network2]);
+    //   expect(d1).toEqual(1);
+    //   network1.connectNodes(1, 9, 101);
+    //   network1.connexions.splice(3, 1);
+    //   const d2 = NeatUtils.computeNumberOfExcessGenes([network1, network2]);
+    //   expect(d2).toEqual(2);
+    // });
+  });
+  describe("addNodeMutation", () => {
+    it("Add two connexions and one hidden node", () => {
+      const network1 = NeatUtils.generatePerceptron({ shape: [1, 1] });
+      expect(network1.connexions.length).toEqual(1);
+      expect(network1.inputNodes.length).toEqual(1);
+      expect(network1.outputNodes.length).toEqual(1);
+      expect(network1.hiddenNodes.length).toEqual(0);
+      const neat = new Neat();
+      neat.species = [[network1]];
+      NeatUtils.addNodeMutation(network1, neat);
+      expect(network1.connexions.length).toEqual(3);
+      expect(network1.inputNodes.length).toEqual(1);
+      expect(network1.outputNodes.length).toEqual(1);
+      expect(network1.hiddenNodes.length).toEqual(1);
+      NeatUtils.addNodeMutation(network1, neat);
+      expect(network1.connexions.length).toEqual(5);
+      expect(network1.inputNodes.length).toEqual(1);
+      expect(network1.outputNodes.length).toEqual(1);
+      expect(network1.hiddenNodes.length).toEqual(2);
+    });
+    it("Increment the innovation number when innovation is new", () => {
+      const network1 = NeatUtils.generatePerceptron({ shape: [1, 1] });
+    });
+    it("Does not increment the innovation number when innovation exists in other networks", () => {
+      const network1 = NeatUtils.generatePerceptron({ shape: [1, 1] });
+    });
   });
   // describe("selectPopulation", () => {
   //   const shape = [1, 1];

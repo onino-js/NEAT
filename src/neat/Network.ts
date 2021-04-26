@@ -27,10 +27,10 @@ class Network extends Identifiable {
    * Create a Network instance from the provided genome.
    * @param {Partial<Genome>} opt - An optional parameter to set the properties.
    */
-  constructor(opt: INetworkParams) {
+  constructor(opt: INetworkParams, init: boolean = true) {
     super();
     Object.assign(this, opt);
-    this.initialize(opt.shape);
+    init && this.initialize(opt.shape);
   }
 
   get outputValues(): number[] {
@@ -199,7 +199,7 @@ class Network extends Identifiable {
    * @param {number} n1 - The input node index.
    * @param {number} n2 - The output node index.
    */
-  public connectNodes(n1: number, n2: number) {
+  public connectNodes(n1: number, n2: number, innovation?: number) {
     const input = this.getNodeByIndex(n1);
     const output = this.getNodeByIndex(n2);
     const existing = this.connexions.find(
@@ -217,7 +217,9 @@ class Network extends Identifiable {
     } else if (output.type === NodeType.INPUT) {
       throw new Error(`Output node can't be connected as input node`);
     } else {
-      this.connexions.push(new Connexion({ input, output }));
+      const newConnexion = new Connexion({ input, output, innovation });
+      this.connexions.push(newConnexion);
+      return newConnexion;
     }
   }
 
@@ -234,7 +236,7 @@ class Network extends Identifiable {
    * Return a copy of the Genome
    */
   public clone() {
-    const clone = new Network({ ...this });
+    const clone = new Network({ ...this }, false);
     clone.connexions = clone.connexions.map((ag) => ag.clone());
     clone.nodes = clone.nodes.map((ng) => ng.clone());
     // reconnect nueron and axons

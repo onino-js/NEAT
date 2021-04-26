@@ -240,16 +240,19 @@ class NeatUtils {
     }
     // Do nothing if the new connexion already exists
     if (
-      network.connexions.find((c) => c.input === input && c.output === output)
+      network.connexions.find(
+        (c) => c.input === input && c.output === output
+      ) !== undefined
     ) {
       return; // TODO - retry !!!!
+    } else {
+      // Retreive the innovation number for this mutation
+      const innovation = NeatUtils.getConnexionInnovation(connexion, neat);
+      connexion.innovation = innovation;
+      network.connexions.push(connexion);
+      // Retun the mutated network
+      return network;
     }
-    // Retreive the innovation number for this mutation
-    const innovation = NeatUtils.getConnexionInnovation(connexion, neat);
-    connexion.innovation = innovation;
-    network.connexions.push(connexion);
-    // Retun the mutated network
-    return network;
   }
 
   static getConnexionInnovation(connexion: Connexion, neat: Neat): number {
@@ -614,7 +617,9 @@ class NeatUtils {
     ) {
       console.warn(
         "Error:",
-        networks.map((n) => n.clone())
+        networks.map((n) => n.clone()),
+        NeatUtils.computeNumberOfMissmatchGenes(networks),
+        NeatUtils.computeNumberOfExcessGenes(networks)
       );
     }
     return (
@@ -748,6 +753,7 @@ class NeatUtils {
     const activationFunction = NeatUtils.activationFunctions[activationType];
     const network = new Network({ shape, activationFunction });
 
+    let innovation = 1;
     // Create array of connexions
     network.nodes.forEach((node) => {
       if (node.type === NodeType.OUTPUT) return;
@@ -757,10 +763,11 @@ class NeatUtils {
       // create a connexion with each node of next layers
       nextLayerNodes.forEach((n) => {
         const connexion = new Connexion(
-          { input: node, output: n },
+          { input: node, output: n, innovation },
           randomWeight
         );
         network.connexions.push(connexion);
+        innovation++;
       });
     });
     return network;
