@@ -108,7 +108,7 @@ describe("class NeatUtils", () => {
   });
   describe("computeNumberOfMissmatchGenes - simple net", () => {
     const shape = [1, 1];
-    const nodes = [new Node(), new Node(), new Node()];
+
     const connexions1 = [
       new Connexion({ innovation: 4 }),
       new Connexion({ innovation: 5 }),
@@ -119,8 +119,15 @@ describe("class NeatUtils", () => {
       new Connexion({ innovation: 5 }),
       new Connexion({ innovation: 6 }),
     ];
-    const network1 = new Network({ shape, nodes, connexions: connexions1 });
-    const network2 = new Network({ shape, nodes, connexions: connexions2 });
+    const network1 = new Network({ shape, connexions: connexions1 });
+    const network2 = new Network({ shape, connexions: connexions2 });
+    const nodes = [new Node(), new Node(), new Node()];
+    nodes.forEach((n) => {
+      network1.addNode(n);
+    });
+    nodes.forEach((n) => {
+      network2.addNode(n.clone());
+    });
     let d = NeatUtils.computeNumberOfMissmatchGenes([network1, network2]);
     expect(d).toEqual(0);
     network2.connexions[2].innovation = 7;
@@ -204,6 +211,10 @@ describe("class NeatUtils", () => {
     //   expect(d2).toEqual(2);
     // });
   });
+  describe("getNodeInnovation", () => {
+    it("Retreive the same innovation and return it", () => {});
+    it("Do not retreive the same innovation and return the max innovation incremented", () => {});
+  });
   describe("addNodeMutation", () => {
     it("Add two connexions and one hidden node", () => {
       const network1 = NeatUtils.generatePerceptron({ shape: [1, 1] });
@@ -225,7 +236,7 @@ describe("class NeatUtils", () => {
       expect(network1.hiddenNodes.length).toEqual(2);
     });
     it("Increment the innovation number when innovation is new", () => {
-      const network1 = NeatUtils.generatePerceptron({ shape: [1, 1] });
+      const neat = new Neat({ shape: [2, 2] });
     });
     it("Does not increment the innovation number when innovation exists in other networks", () => {
       const network1 = NeatUtils.generatePerceptron({ shape: [1, 1] });

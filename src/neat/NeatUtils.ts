@@ -102,7 +102,6 @@ class NeatUtils {
           networks: [representants[rIndex], p],
           distanceConfiguration,
         });
-        // console.log(distance);
         // If the two are compatible, push the network into newSpecies with the same rIndex
         if (distance <= distanceConfiguration.compatibilityThreshold) {
           newSpecies[rIndex].push(p);
@@ -155,7 +154,7 @@ class NeatUtils {
     if (allConnexions.length === 0) return;
     // Pick randomly an existing connexion gene.
     const connexionToMutate = NeatUtils.randomPick(
-      network.connexions.filter((c) => c.active)
+      network.connexions.filter((c) => c.active === true)
     );
     // Return if no connexion
     if (!connexionToMutate) return;
@@ -164,8 +163,18 @@ class NeatUtils {
     const { input, output } = connexionToMutate;
     // Retreive the innovation number for this mutation
     const innovation = NeatUtils.getNodeInnovation(connexionToMutate, neat);
+    const sameInnovation = network.nodes.find(
+      (n) => innovation === n.innovation
+    );
+    if (sameInnovation) {
+      console.log(sameInnovation);
+      console.log(network);
+      console.log(connexionToMutate);
+      throw new Error("Innovation already exists");
+    }
     // create a new node gene
     const node = new Node({ innovation });
+    console.log(innovation);
     network.addNode(node);
     // create two new connexions following instructions given in "#Node Mutation" of the documentation (neat-implementation)
     const connexionIn = new Connexion({
@@ -177,7 +186,7 @@ class NeatUtils {
       connexionIn,
       neat
     );
-    network.connexions.push(connexionIn);
+    network.addConnexion(connexionIn);
     const connexionOut = new Connexion({
       weight: connexionToMutate.weight,
       input: node,
@@ -187,9 +196,7 @@ class NeatUtils {
       connexionOut,
       neat
     );
-    // Push the new connexions into the network
-    network.connexions.push(connexionOut);
-    // Push the new node into the network
+    network.addConnexion(connexionOut);
     return network;
   }
 
@@ -199,19 +206,19 @@ class NeatUtils {
     const allConnexionfromInput = allConnexions.filter(
       (c) => c.input.innovation === input.innovation
     );
-    const allConnexionfromOutput = allConnexions.filter(
+    const allConnexionToOutput = allConnexions.filter(
       (c) => c.output.innovation === output.innovation
     );
-    const sameConnexion = allConnexionfromInput.find(
-      (cInput) =>
-        allConnexionfromOutput.find(
-          (cOutput) => cOutput.input.innovation === cInput.output.innovation
-        ) !== undefined
-    );
-    return (
-      sameConnexion?.output.innovation ||
-      NeatUtils.getMaxNodeInnovation(neat) + 1
-    );
+    let res = NeatUtils.getMaxNodeInnovation(neat) + 1;
+    allConnexionfromInput.forEach((cIn) => {
+      const same = allConnexionToOutput.find(
+        (_c) => _c.input.innovation === cIn.output.innovation
+      );
+      if (same) {
+        res = same.input.innovation;
+      }
+    });
+    return res;
   }
 
   /**
@@ -249,7 +256,7 @@ class NeatUtils {
       // Retreive the innovation number for this mutation
       const innovation = NeatUtils.getConnexionInnovation(connexion, neat);
       connexion.innovation = innovation;
-      network.connexions.push(connexion);
+      network.addConnexion(connexion);
       // Retun the mutated network
       return network;
     }

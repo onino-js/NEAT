@@ -67,7 +67,9 @@ class Network extends Identifiable {
             : layerIndex > 0 && layerIndex < shape.length - 1
             ? NodeType.HIDDEN
             : NodeType.OUTPUT;
-        this.addNode(new Node({ type, layerIndex, innovation }));
+        this.addNode(
+          new Node({ type, layerIndex, innovation, nodeIndex: innovation })
+        );
         innovation++;
       });
     });
@@ -189,9 +191,36 @@ class Network extends Identifiable {
    */
   public addNode(node: Node): Node {
     node.nodeIndex = this.nodeIndex + 1;
+    const innovation = node.innovation || node.nodeIndex;
+    const same = this.nodes.find((n) => n.innovation === innovation);
+    if (same) {
+      console.log(node);
+      console.log(same);
+      throw new Error("You are trying to add a node that already exists");
+    }
     !node.type && (node.type = NodeType.HIDDEN);
     this.nodes.push(node);
     return node;
+  }
+
+  /**
+   * Add a new connexion.
+   * @param {Node} node - The node to be added
+   */
+  public addConnexion(connexion: Connexion): Connexion {
+    const same = this.connexions.find(
+      (c) =>
+        c.input.innovation === connexion.input.innovation &&
+        c.output.innovation === connexion.output.innovation
+    );
+    if (same) {
+      console.log(connexion);
+      console.log(same);
+      throw new Error("You are trying to add a connexion that already exists");
+    } else {
+      this.connexions.push(connexion);
+    }
+    return connexion;
   }
 
   /**
