@@ -81,6 +81,13 @@ describe("class NeatUtils", () => {
       });
     });
   });
+  describe("initialize population", () => {
+    it("set the correct number of network", () => {
+      const neat = new Neat();
+      NeatUtils.initializePopulation(neat);
+      expect(neat.population.length).toEqual(neat.configuration.populationSize);
+    });
+  });
   describe("getNodesFromShape", () => {
     it("Returns an array of Genes", () => {
       let shape = [1, 1];
@@ -215,96 +222,175 @@ describe("class NeatUtils", () => {
     it("Retreive the same innovation and return it", () => {});
     it("Do not retreive the same innovation and return the max innovation incremented", () => {});
   });
-  describe("addNodeMutation", () => {
+  describe("nodeMutation", () => {
     it("Add two connexions and one hidden node", () => {
       const network1 = NeatUtils.generatePerceptron({ shape: [1, 1] });
-      expect(network1.connexions.length).toEqual(1);
-      expect(network1.inputNodes.length).toEqual(1);
-      expect(network1.outputNodes.length).toEqual(1);
-      expect(network1.hiddenNodes.length).toEqual(0);
       const neat = new Neat();
       neat.species = [[network1]];
-      NeatUtils.addNodeMutation(network1, neat);
+      NeatUtils.nodeMutation(network1.connexions[0], network1, neat);
       expect(network1.connexions.length).toEqual(3);
-      expect(network1.inputNodes.length).toEqual(1);
-      expect(network1.outputNodes.length).toEqual(1);
+      expect(network1.nodes.length).toEqual(3);
       expect(network1.hiddenNodes.length).toEqual(1);
-      NeatUtils.addNodeMutation(network1, neat);
+      NeatUtils.nodeMutation(network1.connexions[1], network1, neat);
       expect(network1.connexions.length).toEqual(5);
-      expect(network1.inputNodes.length).toEqual(1);
-      expect(network1.outputNodes.length).toEqual(1);
+      expect(network1.nodes.length).toEqual(4);
       expect(network1.hiddenNodes.length).toEqual(2);
     });
+    it("Don't do anything if trying to mutate a connexion that has already been done (same innovation in same network)", () => {
+      console.warn = jest.fn();
+      const network1 = NeatUtils.generatePerceptron({ shape: [1, 1] });
+      const neat = new Neat();
+      neat.species = [[network1]];
+      NeatUtils.nodeMutation(network1.connexions[0], network1, neat);
+      expect(network1.connexions.length).toEqual(3);
+      expect(network1.nodes.length).toEqual(3);
+      expect(network1.hiddenNodes.length).toEqual(1);
+      NeatUtils.nodeMutation(network1.connexions[0], network1, neat);
+      expect(network1.connexions.length).toEqual(3);
+      expect(network1.nodes.length).toEqual(3);
+      expect(network1.hiddenNodes.length).toEqual(1);
+      expect(console.warn).toHaveBeenCalledTimes(1);
+    });
+    it("Desactivate the mutated connexion", () => {
+      const network1 = NeatUtils.generatePerceptron({ shape: [1, 1] });
+      const neat = new Neat();
+      neat.species = [[network1]];
+      NeatUtils.nodeMutation(network1.connexions[0], network1, neat);
+      expect(network1.connexions[0].active).toEqual(false);
+      NeatUtils.nodeMutation(network1.connexions[1], network1, neat);
+      expect(network1.connexions[1].active).toEqual(false);
+      NeatUtils.nodeMutation(network1.connexions[3], network1, neat);
+      expect(network1.connexions[3].active).toEqual(false);
+    });
     it("Increment the innovation number when innovation is new", () => {
-      const neat = new Neat({ shape: [2, 2] });
+      const networks = new Array(10)
+        .fill(0)
+        .map((d) => NeatUtils.generatePerceptron({ shape: [2, 2] }));
+      const neat = new Neat();
+      neat.species = [networks];
+      expect(networks[0].connexions[0].innovation).toEqual(1);
+      NeatUtils.nodeMutation(networks[0].connexions[0], networks[0], neat);
+      expect(networks[0].connexions[1].innovation).toEqual(2);
+      expect(networks[0].connexions[2].innovation).toEqual(3);
     });
     it("Does not increment the innovation number when innovation exists in other networks", () => {
-      const network1 = NeatUtils.generatePerceptron({ shape: [1, 1] });
+      const neat = new Neat();
+      const population = new Array(10)
+        .fill(0)
+        .map((d) => NeatUtils.generatePerceptron({ shape: [3, 3, 3] }));
+      neat.species = [population];
+      const maxConnexionInnov1 = Math.max(
+        ...neat.population[0].connexions.map((d) => d.innovation)
+      );
+      const maxNodeInnov1 = Math.max(
+        ...neat.population[0].nodes.map((d) => d.innovation)
+      );
+      NeatUtils.nodeMutation(
+        neat.population[0].connexions[0],
+        neat.population[0],
+        neat
+      );
+      const maxConnexionInnov2 = Math.max(
+        ...neat.population[0].connexions.map((d) => d.innovation)
+      );
+      const maxNodeInnov2 = Math.max(
+        ...neat.population[0].nodes.map((d) => d.innovation)
+      );
+      expect(maxConnexionInnov2).toEqual(maxConnexionInnov1 + 2);
+      expect(maxNodeInnov2).toEqual(maxNodeInnov1 + 1);
+      const lastConnextionIndex = neat.population[0].connexions.length - 1;
+      const lastNodeIndex = neat.population[0].nodes.length - 1;
+      expect(
+        neat.population[0].connexions[lastConnextionIndex].innovation
+      ).toEqual(maxConnexionInnov2);
+      expect(
+        neat.population[0].connexions[lastConnextionIndex - 1].innovation
+      ).toEqual(maxConnexionInnov2 - 1);
+      expect(neat.population[0].nodes[lastNodeIndex].innovation).toEqual(
+        maxNodeInnov2
+      );
+      // Mutate the same connexion again
+      NeatUtils.nodeMutation(
+        neat.population[1].connexions[0],
+        neat.population[1],
+        neat
+      );
+      // Expect the same results
+      expect(maxNodeInnov2).toEqual(maxNodeInnov1 + 1);
+      expect(
+        neat.population[0].connexions[lastConnextionIndex].innovation
+      ).toEqual(maxConnexionInnov2);
+      expect(
+        neat.population[0].connexions[lastConnextionIndex - 1].innovation
+      ).toEqual(maxConnexionInnov2 - 1);
+      expect(neat.population[0].nodes[lastNodeIndex].innovation).toEqual(
+        maxNodeInnov2
+      );
     });
   });
-  // describe("selectPopulation", () => {
-  //   const shape = [1, 1];
-  //   const neat = new Neat();
-  //   const networks = new Array(100).fill(0).map((d) => new Network({ shape }));
-  //   neat.species = [networks];
-  //   networks.forEach((p, i) => (p.adjustedFitness = i));
-  //   it("Remove the correct percentage of the population", () => {
-  //     NeatUtils.selectPopulation(neat);
-  //     expect(neat.population.length).toEqual(50);
-  //     NeatUtils.selectPopulation(neat);
-  //     expect(neat.population.length).toEqual(25);
-  //   });
-  //   it("Only the best survived in each generation", () => {
-  //     neat.population.forEach((p) => expect(p.fitness >= 73));
-  //   });
-  // });
-  // describe("removeXPercent", () => {
-  //   const testArray = new Array(100).fill(0);
-  //   const rates = [0.1, 0.4, 0.88];
-  //   it("Remove the correct percentage of the array", () => {
-  //     const test1 = NeatUtils.removeXPercent(testArray, rates[0]);
-  //     expect(test1.length).toEqual(10);
-  //     const test2 = NeatUtils.removeXPercent(testArray, rates[1]);
-  //     expect(test2.length).toEqual(40);
-  //     const test3 = NeatUtils.removeXPercent(testArray, rates[2]);
-  //     expect(test3.length).toEqual(88);
-  //   });
-  // });
-  // describe("computeFitness", () => {
-  //   const shape = [1, 1];
-  //   const neat = new Neat();
-  //   const networks = new Array(100).fill(0).map((d) => new Network({ shape }));
-  //   neat.species = [networks];
-  //   const fitnessFunction = jest.fn();
-  //   it("Call the fitness function provided by user for each individual", () => {
-  //     neat.configuration.fitnessFunction = fitnessFunction;
-  //     NeatUtils.computeFitness(neat);
-  //     expect(fitnessFunction).toHaveBeenCalledTimes(100);
-  //   });
-  //   it("Assign the correct value to the individuals", () => {
-  //     neat.configuration.fitnessFunction = () => 10;
-  //     NeatUtils.computeFitness(neat);
-  //     neat.population.forEach((p) => expect(p.fitness).toEqual(10));
-  //   });
-  // });
-  // describe("speciatePopulation", () => {
-  //   describe("speciate different weighted networks but same structure", () => {
-  //     const neat = new Neat({ maxEpoch: 2 });
-  //     neat.configuration.distanceConfiguration.compatibilityThreshold = 0.2;
-  //     const species = new Array(100)
-  //       .fill(0)
-  //       .map((d) => new Network({ shape: [1, 1] }));
-  //     species.forEach((g, i) => {
-  //       const weight = i < 25 ? 1 : 0;
-  //       g.connexions.push(new Connexion({ weight, innovation: 1 }));
-  //     });
-  //     neat.species = [species];
-  //     it("", () => {
-  //       NeatUtils.speciatePopulation(neat);
-  //       expect(neat.species.length).toEqual(2);
-  //       expect(neat.species[0].length).toEqual(75);
-  //       expect(neat.species[1].length).toEqual(25);
-  //     });
-  //   });
-  // });
+  describe("selectPopulation", () => {
+    const shape = [1, 1];
+    const neat = new Neat();
+    const networks = new Array(100).fill(0).map((d) => new Network({ shape }));
+    neat.species = [networks];
+    networks.forEach((p, i) => (p.adjustedFitness = i));
+    it("Remove the correct percentage of the population", () => {
+      NeatUtils.selectPopulation(neat);
+      expect(neat.population.length).toEqual(50);
+      NeatUtils.selectPopulation(neat);
+      expect(neat.population.length).toEqual(25);
+    });
+    it("Only the best survived in each generation", () => {
+      neat.population.forEach((p) => expect(p.fitness >= 73));
+    });
+  });
+  describe("removeXPercent", () => {
+    const testArray = new Array(100).fill(0);
+    const rates = [0.1, 0.4, 0.88];
+    it("Remove the correct percentage of the array", () => {
+      const test1 = NeatUtils.removeXPercent(testArray, rates[0]);
+      expect(test1.length).toEqual(10);
+      const test2 = NeatUtils.removeXPercent(testArray, rates[1]);
+      expect(test2.length).toEqual(40);
+      const test3 = NeatUtils.removeXPercent(testArray, rates[2]);
+      expect(test3.length).toEqual(88);
+    });
+  });
+  describe("computeFitness", () => {
+    const shape = [1, 1];
+    const neat = new Neat();
+    const networks = new Array(100).fill(0).map((d) => new Network({ shape }));
+    neat.species = [networks];
+    const fitnessFunction = jest.fn();
+    it("Call the fitness function provided by user for each individual", () => {
+      neat.configuration.fitnessFunction = fitnessFunction;
+      NeatUtils.computeFitness(neat);
+      expect(fitnessFunction).toHaveBeenCalledTimes(100);
+    });
+    it("Assign the correct value to the individuals", () => {
+      neat.configuration.fitnessFunction = () => 10;
+      NeatUtils.computeFitness(neat);
+      neat.population.forEach((p) => expect(p.fitness).toEqual(10));
+    });
+  });
+  describe("speciatePopulation", () => {
+    describe("speciate different weighted networks but same structure", () => {
+      it("", () => {
+        const neat = new Neat({ maxEpoch: 2 });
+        neat.configuration.distanceConfiguration.compatibilityThreshold = 0.2;
+        const species = new Array(100)
+          .fill(0)
+          .map((d) => new Network({ shape: [1, 1] }));
+        species.forEach((g, i) => {
+          const weight = i < 25 ? 1 : 0;
+          g.connexions.push(new Connexion({ weight, innovation: 1 }));
+        });
+        neat.species = [species];
+        NeatUtils.speciatePopulation(neat);
+        expect(neat.species.length).toEqual(2);
+        expect(neat.species[0].length).toEqual(75);
+        expect(neat.species[1].length).toEqual(25);
+      });
+    });
+  });
 });

@@ -194,8 +194,6 @@ class Network extends Identifiable {
     const innovation = node.innovation || node.nodeIndex;
     const same = this.nodes.find((n) => n.innovation === innovation);
     if (same) {
-      console.log(node);
-      console.log(same);
       throw new Error("You are trying to add a node that already exists");
     }
     !node.type && (node.type = NodeType.HIDDEN);
@@ -214,8 +212,6 @@ class Network extends Identifiable {
         c.output.innovation === connexion.output.innovation
     );
     if (same) {
-      console.log(connexion);
-      console.log(same);
       throw new Error("You are trying to add a connexion that already exists");
     } else {
       this.connexions.push(connexion);
@@ -228,7 +224,12 @@ class Network extends Identifiable {
    * @param {number} n1 - The input node index.
    * @param {number} n2 - The output node index.
    */
-  public connectNodes(n1: number, n2: number, innovation?: number) {
+  public connectNodes(
+    n1: number,
+    n2: number,
+    weight: number,
+    innovation?: number
+  ) {
     const input = this.getNodeByIndex(n1);
     const output = this.getNodeByIndex(n2);
     const existing = this.connexions.find(
@@ -246,7 +247,7 @@ class Network extends Identifiable {
     } else if (output.type === NodeType.INPUT) {
       throw new Error(`Output node can't be connected as input node`);
     } else {
-      const newConnexion = new Connexion({ input, output, innovation });
+      const newConnexion = new Connexion({ input, output, innovation, weight });
       this.connexions.push(newConnexion);
       return newConnexion;
     }
@@ -259,6 +260,18 @@ class Network extends Identifiable {
    */
   public getNodeByIndex(nodeIndex: number): Node {
     return this.nodes.find((n) => n.nodeIndex === nodeIndex);
+  }
+
+  /**
+   * Make every node recurrent on a layer
+   * @param {number} layerIndex - The layer index
+   */
+  public makeLayerRecurrent(layerIndex: number) {
+    this.nodes
+      .filter((n) => n.layerIndex === layerIndex)
+      .forEach((n) => {
+        this.connectNodes(n.nodeIndex, n.nodeIndex, 1);
+      });
   }
 
   /**

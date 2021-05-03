@@ -11,17 +11,17 @@ const main = () => {
     activationType: ActivationType.RELU,
   });
   // Add recurrent nodes
-  network.nodes
-    .filter((n) => n.layerIndex === 2)
-    .forEach((n) => {
-      const axon = new Connexion({ input: n, output: n }, true);
-      network.connexions.push(axon);
-    });
+  // network.nodes
+  //   .filter((n) => n.layerIndex === 2)
+  //   .forEach((n) => {
+  //     network.connectNodes(n.nodeIndex, n.nodeIndex);
+  //   });
+  network.makeLayerRecurrent(2);
   const n1 = network.nodes[8];
   const n2 = network.nodes[11];
   const ax = new Connexion({ input: n2, output: n1, weight: 1 });
-
   network.connexions.push(ax);
+  //network.connectNodes(12, 9);
   const visualizer = new Visualizer("canvas", network);
 
   network.setUpdateCallback(() => visualizer.refresh());

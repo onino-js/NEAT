@@ -133,7 +133,7 @@ class NeatUtils {
     neat.population.forEach((p) => {
       NeatUtils.randomDo(addConnexion) &&
         NeatUtils.addConnexionMutation(p, neat);
-      NeatUtils.randomDo(addNode) && NeatUtils.addNodeMutation(p, neat);
+      NeatUtils.randomDo(addNode) && NeatUtils.randomNodeMutation(p, neat);
       NeatUtils.randomDo(changeConnexionWeight) &&
         NeatUtils.changeWeightMutation(p);
     });
@@ -148,33 +148,52 @@ class NeatUtils {
    * @param {Network[]} networks An array of networks of the same species.
    * @return {Network[]} An array of species.
    */
-  static addNodeMutation(network: Network, neat: Neat) {
-    // Get all connexions in the concerned species
-    const allConnexions = neat.population.map((g) => g.connexions).flat();
-    if (allConnexions.length === 0) return;
+  static randomNodeMutation(network: Network, neat: Neat) {
     // Pick randomly an existing connexion gene.
     const connexionToMutate = NeatUtils.randomPick(
       network.connexions.filter((c) => c.active === true)
     );
     // Return if no connexion
     if (!connexionToMutate) return;
+    else {
+      NeatUtils.nodeMutation(connexionToMutate, network, neat);
+    }
+  }
+
+  /**
+   * Mutate a network with a "add node mutation"
+   * We separate the action of picking a connexion randomly for easier testing
+   *
+   * @param {Network} network The network to mutate.
+   * @param {Network[]} networks An array of networks of the same species.
+   * @return {Network[]} An array of species.
+   */
+  static nodeMutation(connexion: Connexion, network: Network, neat: Neat) {
     // Disable the connexion
-    connexionToMutate.active = false;
-    const { input, output } = connexionToMutate;
+    connexion.active = false;
+    // Get all connexions in the concerned species
+    const allConnexions = neat.population.map((g) => g.connexions).flat();
+    if (allConnexions.length === 0) return;
+    const { input, output } = connexion;
     // Retreive the innovation number for this mutation
-    const innovation = NeatUtils.getNodeInnovation(connexionToMutate, neat);
+    const innovation = NeatUtils.getNodeInnovation(connexion, neat);
+    // Check if innovation already exists (this should not happen if the connexion to mutate is properly chosen before)
     const sameInnovation = network.nodes.find(
       (n) => innovation === n.innovation
     );
+    // If yes don't do anything and notify user there is a problem in the implementation
     if (sameInnovation) {
-      console.log(sameInnovation);
-      console.log(network);
-      console.log(connexionToMutate);
-      throw new Error("Innovation already exists");
+      console.warn(`You are trying to make a mutation that already exists in the network
+      the concerned node innovation is ${sameInnovation.innovation}
+      the concerned connexion innovation is ${connexion.innovation}
+      input innovation: ${connexion.input.innovation}
+      output innovation: ${connexion.output.innovation}
+      `);
+      return;
     }
     // create a new node gene
     const node = new Node({ innovation });
-    console.log(innovation);
+    // Add it to the network
     network.addNode(node);
     // create two new connexions following instructions given in "#Node Mutation" of the documentation (neat-implementation)
     const connexionIn = new Connexion({
@@ -188,7 +207,7 @@ class NeatUtils {
     );
     network.addConnexion(connexionIn);
     const connexionOut = new Connexion({
-      weight: connexionToMutate.weight,
+      weight: connexion.weight,
       input: node,
       output,
     });
